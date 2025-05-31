@@ -11,19 +11,19 @@ function SideNav() {
   const menuList = [
     {
       id: 1,
-      name: 'Dashboard',
+      name: 'Beranda',
       icon: LayoutGrid,
       path: '/dashboard'
     },
     {
       id: 2,
-      name: 'Budgets',
+      name: 'Anggaran',
       icon: PiggyBank,
       path: '/dashboard/budgets'
     },
     {
       id: 3,
-      name: 'Expenses',
+      name: 'Pengeluaran',
       icon: ReceiptText,
       path: '/dashboard/expenses'
     },
