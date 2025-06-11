@@ -17,7 +17,7 @@ function SideNav() {
     },
     {
       id: 2,
-      name: 'Anggaran',
+      name: 'Dana',
       icon: PiggyBank,
       path: '/dashboard/budgets'
     },
@@ -29,9 +29,9 @@ function SideNav() {
     },
     {
       id: 4,
-      name: 'Upgrade',
+      name: 'AI Chatbot',
       icon: ShieldCheck,
-      path: '/dashboard/upgrade'
+      path: '/dashboard/aiChatbot'
     }
   ];
 

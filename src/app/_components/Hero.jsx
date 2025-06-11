@@ -12,7 +12,7 @@ function Hero () {
       </h1>
 
       <p className="mt-4 text-base text-pretty text-gray-700 sm:text-lg/relaxed">
-        Mulai membuat anggaran Anda dan hemat uang
+        Mulai membuat Dana Anda dan hemat uang
       </p>
 
       <div className="mt-4 flex justify-center gap-4 sm:mt-6">

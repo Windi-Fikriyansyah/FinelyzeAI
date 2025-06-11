@@ -3,9 +3,11 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@clerk/nextjs";
+import { formatRupiah } from 'utils/formatter' 
 
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -14,11 +16,11 @@ import {
 } from "@/components/ui/dialog"
 
   import EmojiPicker from 'emoji-picker-react'
-  import { Anggaran } from 'utils/schema';
+  import { Dana } from 'utils/schema';
   import { db } from 'utils/dbConfig';
   import { toast } from 'sonner';
 
-function CreateBudget() {
+function CreateBudget({refreshData}) {
 
   const [emojiIcon,setEmojiIcon]=useState('😊');
   const [openEmojiPicker,setOpenEmojiPicker]=useState(false)
@@ -34,21 +36,23 @@ function CreateBudget() {
     }
   
     try {
-      const result = await db.insert(Anggaran)
+      const result = await db.insert(Dana)
         .values({
           nama: name,
           jumlah: amount,
           icon: emojiIcon,
           createdBy: user.primaryEmailAddress.emailAddress
         })
-        .returning({ insertId: Anggaran.id });
+        .returning({ insertId: Dana.id });
   
-      if (result) {
-        toast('Anggaran baru berhasil dibuat!');
-      }
+      if (result)
+        {
+          refreshData()
+          toast('Dana baru berhasil dibuat!');
+        }
     } catch (error) {
       console.error(error);
-      toast.error('Gagal membuat anggaran.');
+      toast.error('Gagal membuat dana.');
     }
   };
   
@@ -62,12 +66,12 @@ function CreateBudget() {
               items-center flex flex-col border-2 border-dashed
               cursor-pointer hover:shadow-md'>
               <h2 className='text-3xl'>+</h2>
-              <h2>Buat Anggaran Baru</h2>
+              <h2>Buat Dana Baru</h2>
             </div>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Buat Anggaran Baru</DialogTitle>
+              <DialogTitle>Buat Dana Baru</DialogTitle>
               <DialogDescription>
 
               </DialogDescription>
@@ -77,7 +81,7 @@ function CreateBudget() {
                   className="text-lg"
                   onClick={()=>setOpenEmojiPicker(!openEmojiPicker)}
                   >{emojiIcon}</Button>
-                  <div className='absolute'>
+                  <div className='absolute z-20'>
                     <EmojiPicker
                     open={openEmojiPicker}
                     onEmojiClick={(e)=>{
@@ -87,23 +91,32 @@ function CreateBudget() {
                     />
                   </div>
                   <div className='mt-2'>
-                    <h2 className='text-black font-medium mt-1'>Nama Anggaran</h2>
-                    <Input placeholder="contoh: Keperluan Rumah"
+                    <h2 className='text-black font-medium mt-1'>Kategori Dana</h2>
+                    <Input placeholder="contoh: Belanja Bulanan"
                     onChange={(e)=>setName(e.target.value)} />
                   </div>
 
                   <div className='mt-2'>
-                    <h2 className='text-black font-medium my-1'>Jumlah Anggaran</h2>
+                    <h2 className='text-black font-medium my-1'>Jumlah Dana</h2>
                     <Input
-                    type="number"
-                    placeholder="contoh: 500000"
-                    onChange={(e)=>setAmount(e.target.value)} />
+                      type="number"
+                      placeholder="contoh: Rp 500.000"
+                      onChange={(e)=>setAmount(e.target.value)} />
+                    
+                    {amount && (
+                      <p className='text-sm text-muted-foreground mt-1'>
+                        Format: <span className="font-medium text-black">Rp {formatRupiah(amount)}</span>
+                      </p>
+                    )}
                   </div>
 
+
+                  <DialogClose asChild>
                   <Button 
                     disabled={!(name&&amount)}
                     onClick={()=>onCreateBudget()}
-                    className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white">Buat Anggaran</Button>
+                    className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white">Buat Dana</Button>
+                    </DialogClose>
                 </div>
             </DialogHeader>
           </DialogContent>

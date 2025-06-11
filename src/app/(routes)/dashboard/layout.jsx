@@ -4,7 +4,7 @@ import SideNav from './_components/SideNav'
 import DashboardHeader from './_components/DashboardHeader'
 
 import { db } from "../../../../utils/dbConfig";
-import { Anggaran } from "../../../../utils/schema";
+import { Dana } from "../../../../utils/schema";
 import { useUser } from "@clerk/nextjs";
 import { eq } from "drizzle-orm";
 import { useRouter } from 'next/navigation';
@@ -14,11 +14,11 @@ function DashboardLayout({children}) {
   const router = useRouter();
   
   useEffect(() => {
-    user && checkUserAnggaran()
+    user && checkUserDana()
   }, [user])
 
-  const checkUserAnggaran = async () => {
-    const result = await db.select().from(Anggaran).where(eq(Anggaran.createdBy, user?.primaryEmailAddress?.emailAddress));
+  const checkUserDana = async () => {
+    const result = await db.select().from(Dana).where(eq(Dana.createdBy, user?.primaryEmailAddress?.emailAddress));
     if(result?.length === 0){
       router.replace('/dashboard/budgets')
     }
