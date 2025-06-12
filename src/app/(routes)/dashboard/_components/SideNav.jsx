@@ -2,10 +2,15 @@
 
 import React, { useEffect } from 'react';
 import Image from "next/image";
-import Link from "next/link"; 
+import Link from "next/link";
 import { LayoutGrid, PiggyBank, ReceiptText, ShieldCheck } from 'lucide-react';
-import { UserButton } from '@clerk/nextjs';
+import dynamic from 'next/dynamic'; // ✅ Tambahkan ini
 import { usePathname } from 'next/navigation';
+
+// ✅ Import UserButton secara dinamis untuk mencegah hydration error
+const SafeUserButton = dynamic(() => import('@clerk/nextjs').then(mod => mod.UserButton), {
+  ssr: false
+});
 
 function SideNav() {
   const menuList = [
@@ -66,7 +71,7 @@ function SideNav() {
       </div>
 
       <div className='fixed bottom-10 p-5 flex gap-2 items-center'>
-        <UserButton />
+        <SafeUserButton />
         <span>Profile</span>
       </div>
     </div>

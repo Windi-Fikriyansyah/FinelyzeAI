@@ -8,13 +8,14 @@ import BarChartDashboard from './_components/BarChartDashboard'
 import { Dana, Pengeluaran } from 'utils/schema';
 import BudgetItem from './budgets/_components/BudgetItem';
 import ExpenseListTable from './expenses/_components/ExpenseListTable';
-
+import getFinancialAdvice from 'utils/getFinancialAdvice';
 
 function Dashboard() {
   const {user} = useUser();
 
 const[budgetList,setBudgetList]=useState([]);
 const[expensesList,setExpensesList]=useState([]);
+const [advice, setAdvice] = useState("");
 
   useEffect(()=>{
     user&&getBudgetList();
@@ -36,6 +37,15 @@ const[expensesList,setExpensesList]=useState([]);
     .orderBy(desc(Dana.id));
     
     setBudgetList(result);
+
+  // Hitung total dana dan total pengeluaran
+  const totalDana = result.reduce((acc, item) => acc + item.jumlah, 0);
+  const totalPengeluaran = result.reduce((acc, item) => acc + item.totalSpend, 0);
+
+  // Ambil saran dari AI
+  const adviceResponse = await getFinancialAdvice(totalDana, totalPengeluaran);
+  setAdvice(adviceResponse);
+
     getAllExpenses();
   }
 
@@ -57,8 +67,14 @@ const[expensesList,setExpensesList]=useState([]);
 
   return (
     <div className='p-8'>
-      <h2 className="font-bold text-4xl capitalize"> Hi, {user?.fullName} 👋🏻</h2>
-      <p className="text-gray-600">Ini dia ringkasan keuanganmu. Yuk, cek dan kelola!</p>
+<h2 className="font-bold text-4xl capitalize">Hi, {user?.fullName} 👋🏻</h2>
+<p className="text-gray-600">Ini dia ringkasan keuanganmu. Yuk, cek dan kelola!</p>
+
+{advice && (
+  <div className="bg-emerald-50 text-emerald-800 p-4 mt-4 rounded-md border border-emerald-300">
+    💡 <strong>Saran Keuangan:</strong> {advice}
+  </div>
+)}
 
       <CardInfo budgetList={budgetList}/>
       <div className='grid grid-cols-1 md:grid-cols-3 mt-6 gap-5'>
