@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@clerk/nextjs";
 import { formatRupiah } from 'utils/formatter' 
+import dayjs from 'dayjs';
 
 import {
   Dialog,
@@ -35,25 +36,29 @@ function CreateBudget({refreshData}) {
       return;
     }
   
-    try {
-      const result = await db.insert(Dana)
-        .values({
-          nama: name,
-          jumlah: amount,
-          icon: emojiIcon,
-          createdBy: user.primaryEmailAddress.emailAddress
-        })
-        .returning({ insertId: Dana.id });
-  
-      if (result)
-        {
-          refreshData()
-          toast('Dana baru berhasil dibuat!');
-        }
-    } catch (error) {
-      console.error(error);
-      toast.error('Gagal membuat dana.');
-    }
+try {
+  const now = new Date();
+  const bulanFormatted = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; // contoh: 2025-06
+
+  const result = await db.insert(Dana)
+    .values({
+      nama: name,
+      jumlah: amount,
+      icon: emojiIcon,
+      createdBy: user.primaryEmailAddress.emailAddress,
+      bulan: bulanFormatted   // <-- ditambahkan
+    })
+    .returning({ insertId: Dana.id });
+
+  if (result) {
+    refreshData();
+    toast('Dana baru berhasil dibuat!');
+  }
+} catch (error) {
+  console.error(error);
+  toast.error('Gagal membuat dana.');
+}
+
   };
   
 
@@ -90,6 +95,7 @@ function CreateBudget({refreshData}) {
                     }}
                     />
                   </div>
+
                   <div className='mt-2'>
                     <h2 className='text-black font-medium mt-1'>Kategori Dana</h2>
                     <Input placeholder="contoh: Belanja Bulanan"

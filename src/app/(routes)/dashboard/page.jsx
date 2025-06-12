@@ -57,7 +57,8 @@ const [advice, setAdvice] = useState("");
       id:Pengeluaran.id,
       nama:Pengeluaran.nama,
       jumlah:Pengeluaran.jumlah,
-      createdAt:Pengeluaran.createdAt
+      createdAt:Pengeluaran.createdAt,
+      danaNama: Dana.nama, 
     }).from(Dana)
     .rightJoin(Pengeluaran,eq(Dana.id,Pengeluaran.danaId))
     .where(eq(Dana.createdBy,user?.primaryEmailAddress.emailAddress))
@@ -83,10 +84,12 @@ const [advice, setAdvice] = useState("");
             budgetList={budgetList}
           />
 
-          <ExpenseListTable
-          expensesList={expensesList}
-            refreshData={()=>getBudgetList()}
-          />
+          <div className="overflow-y-auto max-h-[500px] pr-2">
+            <ExpenseListTable
+              expensesList={expensesList}
+              refreshData={() => getBudgetList()}
+            />
+          </div>
 
         </div>
         <div className='grid gap-5'>

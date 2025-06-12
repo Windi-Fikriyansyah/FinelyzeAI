@@ -8,7 +8,9 @@ export const Dana = pgTable("dana", {
   nama: varchar("nama").notNull(),
   jumlah: varchar("jumlah").notNull(),
   icon: varchar("icon"),
-  createdBy: varchar("createdBy").notNull()
+
+  bulan: varchar("bulan").notNull(),
+  createdBy: varchar("createdBy").notNull() 
 })
 
 // schema pengeluaran
