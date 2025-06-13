@@ -1,3 +1,4 @@
+import { timestamp } from 'drizzle-orm/gel-core'
 import {
     integer, numeric, pgTable, serial, varchar
 } from 'drizzle-orm/pg-core'
@@ -6,7 +7,7 @@ import {
 export const Dana = pgTable("dana", {
   id: serial("id").primaryKey(),
   nama: varchar("nama").notNull(),
-  jumlah: varchar("jumlah").notNull(),
+  jumlah: numeric("jumlah").notNull().default(0),
   icon: varchar("icon"),
 
   bulan: varchar("bulan").notNull(),
@@ -19,5 +20,5 @@ export const Pengeluaran = pgTable("pengeluaran", {
     nama: varchar("nama").notNull(),
     jumlah: numeric("jumlah").notNull().default(0),
     danaId: integer("danaId").references(() => Dana.id),
-    createdAt: varchar("createdAt").notNull()
+    createdAt: timestamp("createdAt", { mode: "string" }).notNull()
 })
