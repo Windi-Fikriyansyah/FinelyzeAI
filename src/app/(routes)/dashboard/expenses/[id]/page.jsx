@@ -1,17 +1,16 @@
-"use client"
-import { use } from 'react';
-import { useUser } from '@clerk/nextjs';
-import { desc, eq, getTableColumns, sql } from 'drizzle-orm';
-import React, { useEffect, useState } from 'react';
-import { db } from 'utils/dbConfig';
-import { Dana, Pengeluaran } from 'utils/schema';
-import BudgetItem from '../../budgets/_components/BudgetItem';
-import ExpenseListTable from '../../budgets/_components/ExpenseListTable';
-import AddExpense from '../../expenses/_components/AddExpense';
-import EditBudget from '../../expenses/_components/EditBudget';
-import { PenBox, Trash, ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-
+"use client";
+import { use } from "react";
+import { useUser } from "@clerk/nextjs";
+import { desc, eq, getTableColumns, sql } from "drizzle-orm";
+import React, { useEffect, useState } from "react";
+import { db } from "utils/dbConfig";
+import { Dana, Pengeluaran } from "utils/schema";
+import BudgetItem from "../../budgets/_components/BudgetItem";
+import ExpenseListTable from "../../budgets/_components/ExpenseListTable";
+import AddExpense from "../../expenses/_components/AddExpense";
+import EditBudget from "../../expenses/_components/EditBudget";
+import { Trash, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,21 +21,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { useRouter, useSearchParams } from "next/navigation";
 
 function Expenses({ params: paramsPromise }) {
+  const params = use(paramsPromise); // ✅ FIX: unwrap the async params
   const { user } = useUser();
-  const [budgetInfo,setBudgetInfo]=useState();
-  const params = use(paramsPromise); 
-  const [isFetched, setIsFetched] = useState(false); 
-  const [expensesList,setExpensesList]=useState([]);
-  const route=useRouter();
+  const [budgetInfo, setBudgetInfo] = useState(null);
+  const [expensesList, setExpensesList] = useState([]);
+  const [isFetched, setIsFetched] = useState(false);
+  const route = useRouter();
+  const searchParams = useSearchParams();
+
+  const selectedMonth = searchParams.get("month");
+  const selectedYear = searchParams.get("year");
 
   useEffect(() => {
     if (user && params?.id && !isFetched && !isNaN(Number(params.id))) {
-      console.log("Mendapatkan info untuk ID Dana:", params.id);
       getBudgetInfo();
     }
   }, [user, params]);
@@ -50,18 +52,16 @@ function Expenses({ params: paramsPromise }) {
         .select({
           ...getTableColumns(Dana),
           totalSpend: sql`sum(${Pengeluaran.jumlah})`.mapWith(Number),
-          TotalItem: sql`count(${Pengeluaran.id})`.mapWith(Number)
+          TotalItem: sql`count(${Pengeluaran.id})`.mapWith(Number),
         })
         .from(Dana)
         .leftJoin(Pengeluaran, eq(Dana.id, Pengeluaran.danaId))
         .where(eq(Dana.createdBy, user?.primaryEmailAddress?.emailAddress))
-        .where(eq(Dana.id, id)) 
+        .where(eq(Dana.id, id))
         .groupBy(Dana.id);
 
       setBudgetInfo(result[0]);
       getExpensesList(id);
-
-      console.log("Query Result:", result);
       setIsFetched(true);
     } catch (err) {
       console.error("Gagal mendapatkan data dana:", err);
@@ -71,45 +71,54 @@ function Expenses({ params: paramsPromise }) {
   const getExpensesList = async (id) => {
     if (isNaN(id)) return;
 
-    const result = await db.select().from(Pengeluaran)
+    const result = await db
+      .select()
+      .from(Pengeluaran)
       .where(eq(Pengeluaran.danaId, id))
       .orderBy(desc(Pengeluaran.id));
 
     setExpensesList(result);
-    console.log(result);
   };
 
   const deleteBudget = async () => {
     const id = Number(params.id);
     if (isNaN(id)) return;
 
-    const deleteExpanseResult = await db.delete(Pengeluaran)
+    const deleteExpanseResult = await db
+      .delete(Pengeluaran)
       .where(eq(Pengeluaran.danaId, id))
       .returning();
 
-    if(deleteExpanseResult) {
-      const result = await db.delete(Dana)
-        .where(eq(Dana.id, id))
-        .returning();
-
-      toast('Dana dihapus!');
-      route.replace('/dashboard/budgets');
+    if (deleteExpanseResult) {
+      await db.delete(Dana).where(eq(Dana.id, id)).returning();
+      toast("Dana dihapus!");
+      route.replace("/dashboard/budgets");
     }
   };
 
   return (
-    <div className='p-10'>
-      <div className='flex justify-between items-center'>
-        <div onClick={() => route.push('/dashboard')} className="flex items-center gap-3 cursor-pointer">
+    <div className="p-10">
+      <div className="flex justify-between items-center">
+        <div
+          onClick={() => {
+            if (selectedMonth && selectedYear) {
+              route.push(`/dashboard?month=${selectedMonth}&year=${selectedYear}`);
+            } else {
+              route.push("/dashboard");
+            }
+          }}
+          className="flex items-center gap-3 cursor-pointer"
+        >
           <ArrowLeft className="h-7 w-7 text-primary" />
-          <h2 className='text-2xl font-bold'>Pengeluaran Saya</h2>
+          <h2 className="text-2xl font-bold">Pengeluaran Saya</h2>
         </div>
-        <div className='flex gap-2 items-center'>
+
+        <div className="flex gap-2 items-center">
           <EditBudget budgetInfo={budgetInfo} refreshData={() => getBudgetInfo()} />
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button className='flex gap-2' variant='destructive'>
-                <Trash />Hapus
+              <Button className="flex gap-2" variant="destructive">
+                <Trash /> Hapus
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -128,21 +137,22 @@ function Expenses({ params: paramsPromise }) {
         </div>
       </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-2 mt-6 gap-5'>
+      <div className="grid grid-cols-1 md:grid-cols-2 mt-6 gap-5">
         {budgetInfo ? (
           <BudgetItem budget={budgetInfo} />
         ) : (
-          <div className='h-[150px] w-full bg-slate-200 rounded-lg animate-pulse' />
+          <div className="h-[150px] w-full bg-slate-200 rounded-lg animate-pulse" />
         )}
 
         {user ? (
           <AddExpense danaId={params.id} user={user} refreshData={() => getBudgetInfo()} />
         ) : (
-          <div className='h-[150px] w-full bg-slate-200 rounded-lg animate-pulse' />
+          <div className="h-[150px] w-full bg-slate-200 rounded-lg animate-pulse" />
         )}
       </div>
-      <div className='mt-4'>
-        <h2 className='font-bold text-lg'>Pengeluaran Terbaru</h2>
+
+      <div className="mt-4">
+        <h2 className="font-bold text-lg">Pengeluaran Terbaru</h2>
         <ExpenseListTable expensesList={expensesList} refreshData={() => getBudgetInfo()} />
       </div>
     </div>

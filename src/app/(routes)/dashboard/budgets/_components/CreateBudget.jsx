@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useUser } from "@clerk/nextjs";
 import { formatRupiah } from 'utils/formatter' 
 import dayjs from 'dayjs';
+import { useSearchParams } from 'next/navigation';
 
 import {
   Dialog,
@@ -29,6 +30,10 @@ function CreateBudget({refreshData}) {
   const [name,setName]=useState();
   const [amount,setAmount]=useState();
 
+  const searchParams = useSearchParams();
+const selectedMonth = Number(searchParams.get('month')) || new Date().getMonth() + 1;
+const selectedYear = Number(searchParams.get('year')) || new Date().getFullYear();
+
   const {user}=useUser();
   const onCreateBudget = async () => {
     if (!user?.primaryEmailAddress?.emailAddress) {
@@ -38,22 +43,23 @@ function CreateBudget({refreshData}) {
   
 try {
   const now = new Date();
-  const bulanFormatted = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; // contoh: 2025-06
+  const bulanFormatted = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`; // sesuai pilihan user
 
-  const result = await db.insert(Dana)
-    .values({
-      nama: name,
-      jumlah: amount,
-      icon: emojiIcon,
-      createdBy: user.primaryEmailAddress.emailAddress,
-      bulan: bulanFormatted   // <-- ditambahkan
-    })
-    .returning({ insertId: Dana.id });
+const result = await db.insert(Dana)
+  .values({
+    nama: name,
+    jumlah: amount,
+    icon: emojiIcon,
+    createdBy: user.primaryEmailAddress.emailAddress,
+    bulan: bulanFormatted // <== sekarang mengikuti dropdown
+  })
+  .returning({ insertId: Dana.id });
 
   if (result) {
-    refreshData();
-    toast('Dana baru berhasil dibuat!');
-  }
+  if (refreshData) refreshData(); 
+  toast('Dana baru berhasil dibuat!');
+}
+
 } catch (error) {
   console.error(error);
   toast.error('Gagal membuat dana.');

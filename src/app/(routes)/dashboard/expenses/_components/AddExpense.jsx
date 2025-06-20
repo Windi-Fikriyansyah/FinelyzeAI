@@ -8,7 +8,7 @@ import moment from 'moment';
 import { Loader } from 'lucide-react';
 import { formatRupiah } from 'utils/formatter';
 
-function AddExpense({danaId,user,refreshData}) {
+function AddExpense({ danaId, user, refreshData, selectedMonth, selectedYear }) {
 
     const [nama,setName]=useState('');
     const [jumlah,setAmount]=useState('');
@@ -23,7 +23,7 @@ function AddExpense({danaId,user,refreshData}) {
         nama:nama,
         jumlah: Number(jumlah),
         danaId:danaId,
-        createdAt:moment().format('DD/MM/yyy')
+        createdAt: new Date()
       }).returning({insertId:Dana.id});
     
     setAmount('')

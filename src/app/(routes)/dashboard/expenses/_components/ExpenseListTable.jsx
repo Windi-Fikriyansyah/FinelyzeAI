@@ -5,6 +5,9 @@ import { toast } from 'sonner'
 import { db } from 'utils/dbConfig'
 import { Pengeluaran } from 'utils/schema'
 import { formatRupiah } from 'utils/formatter'
+import dayjs from 'dayjs';
+import 'dayjs/locale/id';
+dayjs.locale('id');
 
 function ExpenseListTable({ expensesList, refreshData }) {
 
@@ -45,12 +48,13 @@ function ExpenseListTable({ expensesList, refreshData }) {
                 <td className="px-4 py-2 border">{pengeluaran.nama}</td>
                 <td className="px-4 py-2 border">{pengeluaran.danaNama || '-'}</td>
                 <td className="px-4 py-2 border">{formatRupiah(pengeluaran.jumlah)}</td>
-                <td className="px-4 py-2 border">{pengeluaran.createdAt}</td>
+                <td className="px-4 py-2 border">{dayjs(new Date(pengeluaran.createdAt)).locale('id').format('D MMMM YYYY, HH:mm')}</td>
                 <td className="px-4 py-2 border text-red-600 cursor-pointer">
                   <Trash onClick={() => deleteExpense(pengeluaran)} />
                 </td>
               </tr>
             ))}
+
             {expensesList.length === 0 && (
               <tr>
                 <td colSpan="5" className="text-center py-4 text-gray-500 italic border">

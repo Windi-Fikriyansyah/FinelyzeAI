@@ -5,6 +5,9 @@ import { toast } from 'sonner'
 import { db } from 'utils/dbConfig'
 import { Pengeluaran } from 'utils/schema'
 import { formatRupiah } from 'utils/formatter' 
+import dayjs from 'dayjs';
+import 'dayjs/locale/id';
+dayjs.locale('id');
 
 function ExpenseListTable({expensesList,refreshData}) {
 
@@ -32,7 +35,7 @@ function ExpenseListTable({expensesList,refreshData}) {
         <div key={pengeluaran.id || index} className='grid grid-cols-4 bg-slate-50 p-2'>
             <h2>{pengeluaran.nama}</h2>
             <h2>{formatRupiah(pengeluaran.jumlah)}</h2>
-            <h2>{pengeluaran.createdAt}</h2>
+            <h2>{dayjs(new Date(pengeluaran.createdAt)).locale('id').format('D MMMM YYYY, HH:mm')}</h2>
             <h2>
             <Trash
                 className='text-red-600 cursor-pointer'

@@ -28,13 +28,13 @@ const currentYear = new Date().getFullYear();
 const startYear = 2025;
 const endYear = Math.max(currentYear + 5, startYear + 5);
 
-function BudgetList() {
+function BudgetList({ defaultMonth, defaultYear }) {
 
   const [budgetList, setBudgetList] = useState(null);
   const {user}=useUser();
 
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(defaultMonth || new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(defaultYear || new Date().getFullYear());
 
   useEffect(() => {
     user && getBudgetList();

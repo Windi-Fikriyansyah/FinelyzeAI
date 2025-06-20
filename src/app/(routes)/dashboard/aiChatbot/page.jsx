@@ -1,20 +1,34 @@
 "use client"
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 
 function AIChatBotPage() {
   const [messages, setMessages] = useState([
     {
       role: "system",
       content:
-        "Kamu adalah Finelyze, asisten keuangan yang ramah, menyenangkan, dan menjawab dengan jelas serta singkat. Tugasmu adalah membantu user mengelola keuangan pribadi dengan cara yang mudah dimengerti.",
+        "Kamu adalah Finelyze AI, asisten keuangan cerdas dan menyenangkan. Kamu memiliki akses ke ringkasan pengeluaran user berdasarkan kategori. Tugasmu adalah menganalisis data keuangan tersebut dan memberikan saran yang spesifik, ramah, dan actionable.",
     },
     {
       role: "assistant",
-      content: "Hai! Aku FinBot 🤖. Ada yang bisa aku bantu terkait keuanganmu?",
+      content: "Hai! Aku Finelyze 🤖. Senang bisa bantu kamu hari ini. Ada yang ingin kamu bahas soal keuanganmu? 💸✨",
     },
   ])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
+  const [summary, setSummary] = useState(null)
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const res = await fetch("/api/summary")
+        const data = await res.json()
+        setSummary(data.summary)
+      } catch (err) {
+        console.error("Gagal ambil ringkasan keuangan:", err)
+      }
+    }
+    fetchSummary()
+  }, [])
 
   const handleSend = async () => {
     if (!input.trim()) return
@@ -33,7 +47,11 @@ function AIChatBotPage() {
         },
         body: JSON.stringify({
           model: "openai/gpt-3.5-turbo",
-          messages: newMessages,
+          messages: [
+            ...messages,
+            { role: "user", content: input },
+            summary ? { role: "system", content: `Berikut data pengeluaran user bulan ini: ${summary}` } : null,
+          ].filter(Boolean),
         }),
       })
 
@@ -54,7 +72,7 @@ function AIChatBotPage() {
       <div className="flex flex-col h-full bg-white shadow rounded-xl">
         <h1 className="text-2xl font-bold p-4 border-b text-emerald-600 text-center">🤖 Finelyze AI Chatbot</h1>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-emerald-50">
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-emerald-50">
           {messages
             .filter((msg) => msg.role !== "system")
             .map((msg, index) => (
@@ -68,7 +86,7 @@ function AIChatBotPage() {
                   {msg.role === "user" ? "🧑" : "🤖"}
                 </div>
                 <div
-                  className={`max-w-[70%] px-4 py-2 rounded-2xl shadow ${
+                  className={`max-w-[80%] px-4 py-2 rounded-2xl shadow ${
                     msg.role === "user"
                       ? "bg-emerald-500 text-white rounded-br-none"
                       : "bg-white text-gray-800 rounded-bl-none"
