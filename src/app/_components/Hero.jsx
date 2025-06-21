@@ -1,38 +1,61 @@
 import React from 'react'
-import Image from "next/image";
+import Image from "next/image"
+import Link from "next/link"
+import { Sparkles } from 'lucide-react'
 
-function Hero () {
-    return (
-        <section className="bg-white flex items-center flex-col">
-  <div className="mx-auto w-screen max-w-screen-xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
-    <div className="mx-auto max-w-prose text-center">
-      <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl">
-        Kelola Pengeluaran Anda
-        <strong className="text-indigo-600"> Atur Keuanganmu </strong>
-      </h1>
+function Hero() {
+  return (
+    <section className="bg-gradient-to-br from-white via-[#E6FAF3] to-white">
+      <div className="max-w-7xl mx-auto px-6 py-20 lg:flex lg:items-center lg:justify-between">
+        
+        {/* Text Content */}
+        <div className="max-w-xl text-center lg:text-left" data-aos="fade-right">
+          <div className="inline-flex items-center mb-4 text-teal-600 font-medium bg-teal-100 px-3 py-1 rounded-full shadow-sm">
+            <Sparkles className="w-4 h-4 mr-1" />
+            Smart Financial Tools
+          </div>
 
-      <p className="mt-4 text-base text-pretty text-gray-700 sm:text-lg/relaxed">
-        Mulai membuat Dana Anda dan hemat uang
-      </p>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight">
+            Atur Keuanganmu <br />
+            <span className="bg-gradient-to-r from-[#2FB98D] to-[#127C71] bg-clip-text text-transparent">
+              Bersama Finelyze
+            </span>
+          </h1>
 
-      <div className="mt-4 flex justify-center gap-4 sm:mt-6">
-        <a
-          className="inline-block rounded border border-indigo-600 bg-indigo-600 px-5 py-3 font-medium text-white shadow-sm transition-colors hover:bg-indigo-700"
-          href="/sign-in"
-        >
-          Get Started
-        </a>
+          <p className="mt-6 text-lg text-gray-700">
+            Catat pengeluaran, kelola budgeting, dan pantau keuanganmu dengan bantuan AI.
+          </p>
+
+          <div className="mt-8 flex flex-col sm:flex-row sm:justify-center lg:justify-start gap-4">
+            <Link
+              href="/sign-in"
+              className="px-6 py-3 rounded-lg text-white font-semibold bg-gradient-to-r from-[#2FB98D] to-[#127C71] shadow-md hover:shadow-lg transition-transform hover:scale-[1.02]"
+            >
+              Mulai Sekarang
+            </Link>
+            <a
+              href="#fitur"
+              className="px-6 py-3 rounded-lg border border-teal-600 text-teal-700 font-semibold hover:bg-teal-50 transition"
+            >
+              Lihat Fitur
+            </a>
+          </div>
+        </div>
+
+        {/* Hero Image */}
+        <div className="mt-10 lg:mt-0 lg:ml-12" data-aos="fade-left">
+          <Image
+            src="/dashboard.jpeg"
+            alt="Dashboard Finelyze"
+            width={600}
+            height={400}
+            className="rounded-xl shadow-xl border border-teal-100"
+            priority
+          />
+        </div>
       </div>
-    </div>
-  </div>
-  <Image src="/dashboard.jpeg"
-  alt="dashboard"
-  width={1000}
-  height={700}
-  className='mt-5 rounded-xl border-2'
-  />
     </section>
-    )
+  )
 }
 
 export default Hero

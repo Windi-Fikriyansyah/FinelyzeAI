@@ -1,0 +1,1 @@
+ALTER TABLE "tabungan" ADD COLUMN "targetDate" timestamp NOT NULL;

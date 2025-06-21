@@ -117,7 +117,10 @@ function Expenses({ params: paramsPromise }) {
           <EditBudget budgetInfo={budgetInfo} refreshData={() => getBudgetInfo()} />
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button className="flex gap-2" variant="destructive">
+              <Button className="flex items-center gap-2 px-4 py-2 rounded text-white 
+                bg-gradient-to-t from-[#f87171] to-[#b91c1c] 
+                hover:brightness-105 hover:shadow-lg 
+                transition-all duration-450 ease-in-out">
                 <Trash /> Hapus
               </Button>
             </AlertDialogTrigger>

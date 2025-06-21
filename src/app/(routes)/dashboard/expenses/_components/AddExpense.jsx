@@ -64,7 +64,8 @@ function AddExpense({ danaId, user, refreshData, selectedMonth, selectedYear }) 
                   
                   <Button disabled={!(nama&&jumlah)||loading} 
                   onClick={()=>addNewExpense()}
-                  className='mt-3 w-full'>
+                  className='mt-3 w-full  rounded text-white bg-gradient-to-t from-[#2FB98D] to-[#127C71]  
+                  hover:brightness-105 hover:shadow-lg transition-all duration-450 ease-in-out'>
                     {loading?
                       <Loader className='animate-spin'/>:'Buat Pengeluaran Baru'
                     }

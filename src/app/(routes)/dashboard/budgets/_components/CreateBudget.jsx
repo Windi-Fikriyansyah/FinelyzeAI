@@ -127,7 +127,8 @@ const result = await db.insert(Dana)
                   <Button 
                     disabled={!(name&&amount)}
                     onClick={()=>onCreateBudget()}
-                    className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white">Buat Dana</Button>
+                    className="mt-5 w-full px-4 py-2 rounded text-white bg-gradient-to-t from-[#2FB98D] to-[#127C71] 
+                    hover:brightness-105 hover:shadow-lg transition-all duration-450 ease-in-out">Buat Dana</Button>
                     </DialogClose>
                 </div>
             </DialogHeader>

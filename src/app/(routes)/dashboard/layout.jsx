@@ -1,7 +1,6 @@
 'use client'
 import React, {useEffect} from 'react'
 import SideNav from './_components/SideNav'
-import DashboardHeader from './_components/DashboardHeader'
 
 import { db } from "../../../../utils/dbConfig";
 import { Dana } from "../../../../utils/schema";
@@ -30,7 +29,6 @@ function DashboardLayout({children}) {
         <SideNav />
       </div>
       <div className='md:ml-64'>
-        <DashboardHeader />
         {children}
       </div>
     </div>

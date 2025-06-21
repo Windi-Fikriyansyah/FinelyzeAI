@@ -119,8 +119,8 @@ function AIChatBotPage() {
           <button
             onClick={handleSend}
             disabled={loading}
-            className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 disabled:opacity-50"
-          >
+className="px-4 py-2 rounded-lg text-white bg-gradient-to-t from-[#2FB98D] to-[#127C71] 
+            hover:brightness-110 hover:shadow-xl transition-all duration-450 ease-in-out"          >
             {loading ? "..." : "Kirim"}
           </button>
         </div>

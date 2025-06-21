@@ -1,4 +1,4 @@
-import { timestamp } from 'drizzle-orm/gel-core'
+import { timestamp } from 'drizzle-orm/pg-core';
 import {
     integer, numeric, pgTable, serial, varchar
 } from 'drizzle-orm/pg-core'
@@ -22,3 +22,23 @@ export const Pengeluaran = pgTable("pengeluaran", {
     danaId: integer("danaId").references(() => Dana.id),
     createdAt: timestamp("createdAt", { mode: "string" }).notNull()
 })
+
+//Schema Tabungan
+export const Tabungan = pgTable("tabungan", {
+  id: serial("id").primaryKey(),
+  nama: varchar("nama").notNull(),
+  target: numeric("target").notNull().default(0),
+  terkumpul: numeric("terkumpul").notNull().default(0),
+  icon: varchar("icon"),
+  createdBy: varchar("createdBy").notNull(),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull(),
+  targetDate: timestamp("targetDate", { mode: "date" }).notNull()
+})
+
+//Schema Riwayat Tabungan
+export const RiwayatTabungan = pgTable("riwayat_tabungan", {
+  id: serial("id").primaryKey(),
+  tabunganId: integer("tabunganId").notNull().references(() => Tabungan.id, { onDelete: "cascade" }),
+  nominal: numeric("nominal").notNull(),
+  tanggal: timestamp("tanggal", { mode: "date" }).notNull()
+});

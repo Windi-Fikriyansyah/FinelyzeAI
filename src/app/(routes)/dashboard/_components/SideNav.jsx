@@ -1,78 +1,55 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import Image from "next/image";
 import Link from "next/link";
-import { LayoutGrid, PiggyBank, ReceiptText, ShieldCheck } from 'lucide-react';
-import dynamic from 'next/dynamic'; // ✅ Tambahkan ini
+import { BotMessageSquare, LayoutGrid, PiggyBank, ShieldCheck, Wallet } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 
-// ✅ Import UserButton secara dinamis untuk mencegah hydration error
 const SafeUserButton = dynamic(() => import('@clerk/nextjs').then(mod => mod.UserButton), {
   ssr: false
 });
 
 function SideNav() {
   const menuList = [
-    {
-      id: 1,
-      name: 'Beranda',
-      icon: LayoutGrid,
-      path: '/dashboard'
-    },
-    {
-      id: 2,
-      name: 'Dana',
-      icon: PiggyBank,
-      path: '/dashboard/budgets'
-    },
-    {
-      id: 3,
-      name: 'Pengeluaran',
-      icon: ReceiptText,
-      path: '/dashboard/expenses'
-    },
-    {
-      id: 4,
-      name: 'AI Chatbot',
-      icon: ShieldCheck,
-      path: '/dashboard/aiChatbot'
-    }
+    { id: 1, name: 'Beranda', icon: LayoutGrid, path: '/dashboard' },
+    { id: 2, name: 'Dana', icon: Wallet, path: '/dashboard/budgets' },
+    { id: 3, name: 'Tabungan', icon: PiggyBank, path: '/dashboard/savings' },
+    { id: 4, name: 'AI Chatbot', icon: BotMessageSquare, path: '/dashboard/aiChatbot' }
   ];
 
   const path = usePathname();
 
-  useEffect(() => {
-    console.log(path);
-  }, [path]);
-
   return (
-    <div className='h-screen p-5 border shadow-sm'>
-      <Image 
-        src='/logo.svg'
-        alt='logo'
-        width={160}
-        height={100}
-      />
-      <div className='mt-5'>
-        {menuList.map((menu) => (
-          <Link key={menu.id} href={menu.path}>
-            <h2 className={`flex gap-2 items-center
-              text-gray-500 font-medium mb-2
-              p-5 cursor-pointer rounded-md
-              hover:text-primary hover:bg-blue-100
-              ${path === menu.path ? 'text-primary bg-blue-100' : ''}
-            `}>
-              <menu.icon />
-              {menu.name}
-            </h2>
-          </Link>
-        ))}
+    <div className="h-screen w-[250px] border-r bg-white p-5 shadow-sm flex flex-col justify-between">
+      {/* Logo */}
+      <div>
+        <Image src='/logo.svg' alt='logo' width={160} height={100} />
+        <nav className="mt-6 space-y-2">
+          {menuList.map((menu) => {
+            const isActive = path === menu.path;
+            return (
+              <Link key={menu.id} href={menu.path}>
+                <div
+                  className={`mt-3 flex items-center gap-3 px-4 py-3 rounded-lg font-medium cursor-pointer transition-all
+                    ${isActive
+                      ? 'bg-gradient-to-r from-[#2FB98D] to-[#127C71] text-white shadow'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-teal-700'
+                    }`}
+                >
+                  <menu.icon className="w-5 h-5" />
+                  <span>{menu.name}</span>
+                </div>
+              </Link>
+            );
+          })}
+        </nav>
       </div>
 
-      <div className='fixed bottom-10 p-5 flex gap-2 items-center'>
+      <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-pointer">
         <SafeUserButton />
-        <span>Profile</span>
+        <span className="text-sm text-gray-700">Profil</span>
       </div>
     </div>
   );

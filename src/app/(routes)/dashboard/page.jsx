@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useUser } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
 import { db } from 'utils/dbConfig';
 import { desc, eq, getTableColumns, sql, and } from 'drizzle-orm';
 import CardInfo from './_components/CardInfo';
@@ -100,33 +100,45 @@ function Dashboard() {
 
   return (
     <div className='p-8'>
-      <h2 className="font-bold text-4xl capitalize">Hi, {user?.fullName} 👋🏻</h2>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+    <div>
+      <h2 className="font-bold text-3xl sm:text-4xl capitalize">Hi, {user?.fullName} 👋🏻</h2>
       <p className="text-gray-600">Ini dia ringkasan keuanganmu. Yuk, cek dan kelola!</p>
+    </div>
+    <div className="mt-2 sm:mt-0">
+      <UserButton />
+    </div>
+  </div>
 
       <div className="flex flex-wrap gap-3 mt-4 items-center">
         <select
           value={selectedMonth}
           onChange={handleMonthChange}
-          className="border px-3 py-2 rounded"
+          className="border border-teal-500 px-3 py-2 rounded-lg bg-white text-gray-700 focus:ring-1 focus:ring-[#2FB98D] focus:outline-none"
         >
           {Array.from({ length: 12 }, (_, i) => (
-            <option key={i + 1} value={i + 1}>{dayjs().month(i).format("MMMM")}</option>
+            <option key={i + 1} value={i + 1}>
+              {dayjs().month(i).format("MMMM")}
+            </option>
           ))}
         </select>
 
         <select
           value={selectedYear}
           onChange={handleYearChange}
-          className="border px-3 py-2 rounded"
+          className="border border-teal-500 px-3 py-2 rounded-lg bg-white text-gray-700 focus:ring-1 focus:ring-[#2FB98D] focus:outline-none" 
         >
           {[2024, 2025, 2026].map((year) => (
-            <option key={year} value={year}>{year}</option>
+            <option key={year} value={year}>
+              {year}
+            </option>
           ))}
         </select>
 
         {budgetList?.length === 0 && (
           <button
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            className="px-4 py-2 rounded text-white bg-gradient-to-tr from-[#2FB98D] via-[#1AAE94] to-[#127C71] 
+            hover:brightness-105 hover:shadow-lg transition-all duration-300 ease-in-out"
             onClick={() => {
               router.push(`/dashboard/budgets?month=${selectedMonth}&year=${selectedYear}`);
             }}
@@ -135,6 +147,7 @@ function Dashboard() {
           </button>
         )}
       </div>
+
 
       <CardInfo budgetList={budgetList} />
 

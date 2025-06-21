@@ -1,4 +1,4 @@
-import { PiggyBank, Receipt, Sparkles, Wallet } from 'lucide-react';
+import { LucideWandSparkles, PiggyBank, Receipt, Sparkles, Wallet } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { formatRupiah } from 'utils/formatter';
 import getFinancialAdvice from 'utils/getFinancialAdvice';
@@ -50,17 +50,19 @@ function CardInfo({ budgetList }) {
   return (
   <>
     {/* AI Advice Card */}
-    <div className='p-7 border mt-4 rounded-2xl flex items-center justify-between bg-gradient-to-r from-blue-50 to-white shadow'>
-      <div>
-        <div className='flex mb-2 space-x-2 items-center'>
-          <h2 className='text-lg font-semibold text-gray-800'>Finelyze AI</h2>
-          <Sparkles className='rounded-full text-white w-8 h-8 p-1.5 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 animate-pulse' />
+    <div className="p-6 rounded-2xl mt-4 bg-gradient-to-br from-[#E6FAF3] to-white border border-teal-200 shadow-sm">
+      <div className="flex items-start gap-3">
+        <div className="p-2 rounded-full bg-gradient-to-r from-[#2FB98D] via-[#1AAE94] to-[#127C71] text-white shadow-md animate-pulse">
+          <LucideWandSparkles className="w-5 h-5" /> 
         </div>
-        <p className='text-sm text-gray-700'>
-          {budgetList?.length > 0
-            ? `💡 ${advice || "Menganalisis keuanganmu..."}`
-            : `💡 Belum ada budgeting bulan ini`}
-        </p>
+        <div>
+          <h2 className="text-base font-semibold text-gray-800 mb-1">Finelyze AI</h2>
+          <p className="text-sm text-gray-700">
+            {budgetList?.length > 0
+              ? `💡 ${advice || "Menganalisis keuanganmu..."}`
+              : `💡 Belum ada budgeting bulan ini`}
+          </p>
+        </div>
       </div>
     </div>
 
