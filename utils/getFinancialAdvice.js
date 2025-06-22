@@ -1,12 +1,19 @@
 import OpenAI from 'openai'
 
 // utils/getFinancialAdvice.js
-export default async function getFinancialAdvice(totalDana, totalPengeluaran) {
+export default async function getFinancialAdvice(totalDana, totalPengeluaran, totalPemasukan, kategoriList) {
   try {
     const response = await fetch("/api/advice", {
       method: "POST",
-      body: JSON.stringify({ totalDana, totalPengeluaran }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ totalDana, totalPengeluaran, totalPemasukan, kategoriList }),
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Response not OK:", errorText);
+      return "Gagal ambil saran saat ini 😓";
+    }
 
     const data = await response.json();
     return data.advice;

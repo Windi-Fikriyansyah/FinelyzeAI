@@ -1,25 +1,24 @@
 'use client'
-import React, { useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import BudgetList from './_components/BudgetList'
-import CreateBudget from './_components/CreateBudget'
+import IncomeList from './_components/IncomeList'
+import CreateIncome from './_components/CreateIncome'
 import dayjs from 'dayjs'
+import { useEffect, useState } from 'react'
 
-function Budget() {
+export default function IncomePage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-
   const selectedMonth = Number(searchParams.get('month')) || new Date().getMonth() + 1
   const selectedYear = Number(searchParams.get('year')) || new Date().getFullYear()
 
   const [refreshKey, setRefreshKey] = useState(0)
 
   const handleMonthChange = (e) => {
-    router.push(`/dashboard/budgets?month=${e.target.value}&year=${selectedYear}`)
+    router.push(`/dashboard/income?month=${e.target.value}&year=${selectedYear}`)
   }
 
   const handleYearChange = (e) => {
-    router.push(`/dashboard/budgets?month=${selectedMonth}&year=${e.target.value}`)
+    router.push(`/dashboard/income?month=${selectedMonth}&year=${e.target.value}`)
   }
 
   const refreshData = () => {
@@ -27,11 +26,11 @@ function Budget() {
   }
 
   return (
-    <div className='p-10'>
-      <h2 className='font-bold text-3xl'>Kategori Pengeluaran</h2>
-      <p className="text-gray-600 mb-5">Buat kategori pengeluaran sesuai kebutuhanmu. Yuk, mulai atur sekarang!</p>
+    <div className="p-10">
+      <h1 className="font-bold text-3xl">Daftar Pemasukan</h1>
+      <p className="text-gray-600 mb-5">Lihat dan kelola pemasukanmu bulan ini</p>
 
-      {/* Dropdown + Button */}
+      {/* Dropdown Bulan & Tahun */}
       <div className="flex flex-wrap gap-3 items-center mb-6">
         <select
           value={selectedMonth}
@@ -40,7 +39,7 @@ function Budget() {
         >
           {Array.from({ length: 12 }, (_, i) => (
             <option key={i + 1} value={i + 1}>
-              {dayjs().month(i).format('MMMM')}
+              {dayjs().month(i).format("MMMM")}
             </option>
           ))}
         </select>
@@ -57,17 +56,17 @@ function Budget() {
           ))}
         </select>
 
-        {/* Tombol Buat Dana Baru */}
-        <CreateBudget refreshData={refreshData} />
+        <CreateIncome refreshData={refreshData} />
       </div>
 
-      <BudgetList
-        defaultMonth={selectedMonth}
-        defaultYear={selectedYear}
-        key={refreshKey}
-      />
+      {/* List Pemasukan */}
+      <div className="mt-6">
+        <IncomeList
+          defaultMonth={selectedMonth}
+          defaultYear={selectedYear}
+          key={refreshKey} // trigger re-render saat refreshKey berubah
+        />
+      </div>
     </div>
   )
 }
-
-export default Budget

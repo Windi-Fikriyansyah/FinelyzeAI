@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from "next/image";
 import Link from "next/link";
-import { BotMessageSquare, LayoutGrid, PiggyBank, ShieldCheck, Wallet } from 'lucide-react';
+import { BotMessageSquare, LayoutGrid, PiggyBank, HandCoins, Wallet } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 
@@ -14,9 +14,10 @@ const SafeUserButton = dynamic(() => import('@clerk/nextjs').then(mod => mod.Use
 function SideNav() {
   const menuList = [
     { id: 1, name: 'Beranda', icon: LayoutGrid, path: '/dashboard' },
-    { id: 2, name: 'Dana', icon: Wallet, path: '/dashboard/budgets' },
-    { id: 3, name: 'Tabungan', icon: PiggyBank, path: '/dashboard/savings' },
-    { id: 4, name: 'AI Chatbot', icon: BotMessageSquare, path: '/dashboard/aiChatbot' }
+    { id: 2, name: 'Pemasukan', icon: HandCoins, path: '/dashboard/income' },
+    { id: 3, name: 'Pengeluaran', icon: Wallet, path: '/dashboard/budgets' },
+    { id: 4, name: 'Tabungan', icon: PiggyBank, path: '/dashboard/savings' },
+    { id: 5, name: 'AI Chatbot', icon: BotMessageSquare, path: '/dashboard/aiChatbot' }
   ];
 
   const path = usePathname();

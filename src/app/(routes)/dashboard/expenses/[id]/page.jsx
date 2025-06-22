@@ -1,15 +1,15 @@
 "use client";
-import { use } from "react";
+
+import React, { useEffect, useState, use } from "react";
 import { useUser } from "@clerk/nextjs";
 import { desc, eq, getTableColumns, sql } from "drizzle-orm";
-import React, { useEffect, useState } from "react";
 import { db } from "utils/dbConfig";
 import { Dana, Pengeluaran } from "utils/schema";
 import BudgetItem from "../../budgets/_components/BudgetItem";
 import ExpenseListTable from "../../budgets/_components/ExpenseListTable";
 import AddExpense from "../../expenses/_components/AddExpense";
 import EditBudget from "../../expenses/_components/EditBudget";
-import { Trash, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -25,13 +25,13 @@ import {
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 
-function Expenses({ params: paramsPromise }) {
-  const params = use(paramsPromise); // ✅ FIX: unwrap the async params
+export default function Expenses({ params: paramsPromise }) {
+  const params = use(paramsPromise); // UNWRAP params Promise
   const { user } = useUser();
   const [budgetInfo, setBudgetInfo] = useState(null);
   const [expensesList, setExpensesList] = useState([]);
   const [isFetched, setIsFetched] = useState(false);
-  const route = useRouter();
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   const selectedMonth = searchParams.get("month");
@@ -92,36 +92,39 @@ function Expenses({ params: paramsPromise }) {
     if (deleteExpanseResult) {
       await db.delete(Dana).where(eq(Dana.id, id)).returning();
       toast("Dana dihapus!");
-      route.replace("/dashboard/budgets");
+      router.replace("/dashboard/budgets");
     }
   };
 
   return (
     <div className="p-10">
       <div className="flex justify-between items-center">
-        <div
+        <Button
           onClick={() => {
             if (selectedMonth && selectedYear) {
-              route.push(`/dashboard?month=${selectedMonth}&year=${selectedYear}`);
+              router.push(`/dashboard?month=${selectedMonth}&year=${selectedYear}`);
             } else {
-              route.push("/dashboard");
+              router.push("/dashboard");
             }
           }}
-          className="flex items-center gap-3 cursor-pointer"
+          variant="outline"
+          className="flex items-center gap-2"
         >
-          <ArrowLeft className="h-7 w-7 text-primary" />
-          <h2 className="text-2xl font-bold">Pengeluaran Saya</h2>
-        </div>
+          <ArrowLeft className="w-4 h-4" />
+          Kembali
+        </Button>
 
         <div className="flex gap-2 items-center">
           <EditBudget budgetInfo={budgetInfo} refreshData={() => getBudgetInfo()} />
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button className="flex items-center gap-2 px-4 py-2 rounded text-white 
-                bg-gradient-to-t from-[#f87171] to-[#b91c1c] 
-                hover:brightness-105 hover:shadow-lg 
-                transition-all duration-450 ease-in-out">
-                <Trash /> Hapus
+              <Button
+                className="flex items-center gap-2 px-4 py-2 rounded text-white 
+                  bg-gradient-to-t from-[#f87171] to-[#b91c1c] 
+                  hover:brightness-105 hover:shadow-lg 
+                  transition-all duration-450 ease-in-out"
+              >
+                <Trash2 /> Hapus
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -162,4 +165,4 @@ function Expenses({ params: paramsPromise }) {
   );
 }
 
-export default Expenses;
+

@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { Trash } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import React from 'react'
 import { toast } from 'sonner'
 import { db } from 'utils/dbConfig'
@@ -23,29 +23,47 @@ function ExpenseListTable({expensesList,refreshData}) {
         }
     }
 
-  return (
-    <div className='mt-3'>
-        <div className='grid grid-cols-4 bg-slate-200 p-2'>
-            <h2 className='font-bold'>Nama</h2>
-            <h2 className='font-bold'>Jumlah</h2>
-            <h2 className='font-bold'>Tanggal</h2>
-            <h2 className='font-bold'>Hapus</h2>
+    return (
+    <div className="mt-6">
+        {expensesList.length === 0 ? (
+        <p className="text-gray-400 italic">Belum ada pengeluaran bulan ini.</p>
+        ) : (
+        <div className="overflow-x-auto border border-teal-300 rounded-xl shadow-sm">
+        <table className="min-w-full bg-white border-collapse">
+            <thead className="bg-teal-50 text-teal-800 text-sm">
+            <tr>
+                <th className="px-4 py-2 border border-gray-200 text-center">Nama</th>
+                <th className="px-4 py-2 border border-gray-200 text-center">Jumlah</th>
+                <th className="px-4 py-2 border border-gray-200 text-center">Tanggal</th>
+                <th className="px-4 py-2 border border-gray-200 text-center">Hapus</th>
+            </tr>
+            </thead>
+            <tbody>
+            {expensesList.map((pengeluaran, index) => (
+                <tr key={pengeluaran.id || index} className="hover:bg-slate-50 text-sm">
+                <td className="px-4 py-2 border border-gray-200 text-center">{pengeluaran.nama}</td>
+                <td className="px-4 py-2 border border-gray-200 text-center text-emerald-700 font-medium">
+                    {formatRupiah(pengeluaran.jumlah)}
+                </td>
+                <td className="px-4 py-2 border border-gray-200 text-center">
+                    {dayjs(pengeluaran.createdAt).locale('id').format('D MMMM YYYY')}
+                </td>
+                <td className="px-4 py-2 border border-gray-200">
+                    <div className="flex justify-center items-center">
+                        <Trash2
+                        className="w-4 h-4 text-red-500 hover:scale-110 transition cursor-pointer"
+                        onClick={() => deleteExpense(pengeluaran)}
+                        />
+                    </div>
+                </td>
+                </tr>
+            ))}
+            </tbody>
+        </table>
         </div>
-        {expensesList.map((pengeluaran, index) => (
-        <div key={pengeluaran.id || index} className='grid grid-cols-4 bg-slate-50 p-2'>
-            <h2>{pengeluaran.nama}</h2>
-            <h2>{formatRupiah(pengeluaran.jumlah)}</h2>
-            <h2>{dayjs(new Date(pengeluaran.createdAt)).locale('id').format('D MMMM YYYY, HH:mm')}</h2>
-            <h2>
-            <Trash
-                className='text-red-600 cursor-pointer'
-                onClick={() => deleteExpense(pengeluaran)}
-            />
-            </h2>
-        </div>
-        ))}
+        )}
     </div>
-  )
+    )
 }
 
 export default ExpenseListTable

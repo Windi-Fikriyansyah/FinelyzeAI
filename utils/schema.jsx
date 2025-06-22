@@ -42,3 +42,12 @@ export const RiwayatTabungan = pgTable("riwayat_tabungan", {
   nominal: numeric("nominal").notNull(),
   tanggal: timestamp("tanggal", { mode: "date" }).notNull()
 });
+
+//Schema Pemasukan
+export const Pemasukan = pgTable("pemasukan", {
+  id: serial("id").primaryKey(),
+  sumber: varchar("sumber", { length: 50 }).notNull(),
+  jumlah: numeric("jumlah").notNull().default(0),
+  tanggal: timestamp("tanggal", { mode: "date" }).notNull(),
+  createdBy: varchar("createdBy").notNull()
+})

@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Bar, BarChart, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import {
+  Bar, BarChart, Legend, ResponsiveContainer,
+  Tooltip, XAxis, YAxis
+} from 'recharts';
 
 function BarChartDashboard({ budgetList }) {
   const [isClient, setIsClient] = useState(false);
@@ -28,11 +31,11 @@ function BarChartDashboard({ budgetList }) {
   );
 
   return (
-    <div className='border rounded-lg p-5 bg-white'>
-      <div className='flex justify-between items-center'>
-        <h2 className='font-bold text-lg'>Aktivitas</h2>
+    <div className="border border-teal-300 rounded-xl p-5 bg-white shadow-sm">
+      <div className="flex justify-between items-center mb-3">
+        <h2 className="font-bold text-lg">Aktivitas Bulanan</h2>
         {budgetList.length === 0 && (
-          <p className='text-sm text-gray-500 italic'>
+          <p className="text-sm text-gray-500 italic">
             Belum ada budgeting bulan ini
           </p>
         )}
@@ -41,7 +44,7 @@ function BarChartDashboard({ budgetList }) {
       <ResponsiveContainer width="100%" height={300}>
         <BarChart
           data={chartData}
-          margin={{ top: 5, right: 5, left: 10, bottom: 40 }}
+          margin={{ top: 20, right: 10, left: 10, bottom: 10 }}
         >
           <XAxis
             dataKey="nama"
@@ -58,8 +61,8 @@ function BarChartDashboard({ budgetList }) {
             formatter={(value) => `Rp ${value.toLocaleString('id-ID')}`}
           />
           <Legend />
-          <Bar dataKey="jumlah" name="Dana" fill="#C3C2FF" />
-          <Bar dataKey="totalSpend" name="Pengeluaran" fill="#4845d2" />
+          <Bar dataKey="jumlah" name="Alokasi Dana" fill="#2FB98D" />
+          <Bar dataKey="totalSpend" name="Pengeluaran" fill="#127C71" />
         </BarChart>
       </ResponsiveContainer>
     </div>

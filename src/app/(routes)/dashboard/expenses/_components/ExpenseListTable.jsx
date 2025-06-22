@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { Trash } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import React from 'react'
 import { toast } from 'sonner'
 import { db } from 'utils/dbConfig'
@@ -27,46 +27,61 @@ function ExpenseListTable({ expensesList, refreshData }) {
     return new Date(dateStr).toLocaleDateString('id-ID', options);
   };
 
-  return (
-    <div className="mt-3">
-      <h2 className="font-bold text-lg mb-2">Riwayat Pengeluaran Terbaru</h2>
+return (
+  <div className="mt-6 space-y-3">
+    <h2 className="font-bold text-lg text-black">Riwayat Pengeluaran Terbaru</h2>
 
-      <div className="overflow-x-auto rounded-md shadow">
-        <table className="min-w-full border border-gray-300 text-sm">
-          <thead className="bg-slate-200 text-left">
+    <div className="overflow-x-auto border border-teal-300 rounded-xl shadow-sm">
+      {/* Tambahkan max-h agar bisa scroll vertikal */}
+      <div className="max-h-[400px] overflow-y-auto">
+        <table className="min-w-full bg-white border-collapse text-sm">
+          <thead className="bg-teal-50 text-teal-800 sticky top-0 z-10 shadow-sm">
             <tr>
-              <th className="px-4 py-2 border">Nama</th>
-              <th className="px-4 py-2 border">Kategori</th>
-              <th className="px-4 py-2 border">Jumlah</th>
-              <th className="px-4 py-2 border">Tanggal</th>
-              <th className="px-4 py-2 border">Hapus</th>
+              <th className="px-4 py-2 border border-gray-200 text-center">Nama</th>
+              <th className="px-4 py-2 border border-gray-200 text-center">Kategori</th>
+              <th className="px-4 py-2 border border-gray-200 text-center">Jumlah</th>
+              <th className="px-4 py-2 border border-gray-200 text-center">Tanggal</th>
+              <th className="px-4 py-2 border border-gray-200 text-center">Hapus</th>
             </tr>
           </thead>
           <tbody>
-            {expensesList.map((pengeluaran, index) => (
-              <tr key={pengeluaran.id || index} className="bg-white hover:bg-slate-100">
-                <td className="px-4 py-2 border">{pengeluaran.nama}</td>
-                <td className="px-4 py-2 border">{pengeluaran.danaNama || '-'}</td>
-                <td className="px-4 py-2 border">{formatRupiah(pengeluaran.jumlah)}</td>
-                <td className="px-4 py-2 border">{dayjs(new Date(pengeluaran.createdAt)).locale('id').format('D MMMM YYYY, HH:mm')}</td>
-                <td className="px-4 py-2 border text-red-600 cursor-pointer">
-                  <Trash onClick={() => deleteExpense(pengeluaran)} />
-                </td>
-              </tr>
-            ))}
-
-            {expensesList.length === 0 && (
+            {expensesList.length === 0 ? (
               <tr>
-                <td colSpan="5" className="text-center py-4 text-gray-500 italic border">
+                <td colSpan="5" className="text-center py-4 text-gray-500 italic border border-gray-200">
                   Belum ada pengeluaran bulan ini.
                 </td>
               </tr>
+            ) : (
+              expensesList.map((pengeluaran, index) => (
+                <tr key={pengeluaran.id || index} className="hover:bg-slate-50">
+                  <td className="px-4 py-2 border border-gray-200 text-center">{pengeluaran.nama}</td>
+                  <td className="px-4 py-2 border border-gray-200 text-center">{pengeluaran.danaNama || '-'}</td>
+                  <td className="px-4 py-2 border border-gray-200 text-center">
+                    {formatRupiah(pengeluaran.jumlah)}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200 text-center">
+                    {dayjs(pengeluaran.createdAt).locale('id').format('D MMMM YYYY')}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    <div className="flex justify-center items-center">
+                      <Trash2
+                        className="w-4 h-4 text-red-500 hover:scale-110 transition cursor-pointer"
+                        onClick={() => deleteExpense(pengeluaran)}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
       </div>
     </div>
-  );
+  </div>
+);
+
+
+
 }
 
 export default ExpenseListTable;

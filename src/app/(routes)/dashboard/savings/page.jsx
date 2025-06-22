@@ -27,7 +27,7 @@ export default function SavingsPage() {
   const [openDialog, setOpenDialog] = useState(false);
   const [nama, setNama] = useState("");
   const [target, setTarget] = useState("");
-  const [targetDate, setTargetDate] = useState(new Date());
+  const [targetDate, setTargetDate] = useState(null); // ✅ Biarkan kosong sampai user pilih
   const [emoji, setEmoji] = useState("💰");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -68,6 +68,7 @@ export default function SavingsPage() {
         targetDate,
         terkumpul: 0,
         icon: emoji,
+        selesai: false, // ✅ Tambahkan ini
         createdBy: user.primaryEmailAddress.emailAddress,
         createdAt: new Date(), // <-- ini penting agar sesuai schema
       });
@@ -75,7 +76,7 @@ export default function SavingsPage() {
       setOpenDialog(false);
       setNama("");
       setTarget("");
-      setTargetDate(new Date());
+      setTargetDate(null);
       setEmoji("💰");
       fetchData();
     } catch (err) {
@@ -95,8 +96,7 @@ export default function SavingsPage() {
           <h1 className="text-3xl font-bold">Tabungan Ku</h1>
           <Dialog open={openDialog} onOpenChange={setOpenDialog}>
             <DialogTrigger asChild>
-              <Button className="rounded-lg text-white bg-gradient-to-t from-[#2FB98D] to-[#127C71]  
-                hover:brightness-105 hover:shadow-lg transition-all duration-450 ease-in-out">
+              <Button className="px-4 py-2 rounded text-white bg-gradient-to-t from-[#2FB98D] to-[#127C71] hover:brightness-105 hover:shadow-lg transition-all duration-300 ease-in-out">
                 + Tambah
               </Button>
             </DialogTrigger>
@@ -122,7 +122,15 @@ export default function SavingsPage() {
                 )}
                 <Input value={nama} onChange={(e) => setNama(e.target.value)} placeholder="Nama tabungan" />
                 <Input type="number" value={target} onChange={(e) => setTarget(e.target.value)} placeholder="Target (contoh: 1000000)" />
-                <Calendar mode="single" selected={targetDate} onSelect={(date) => setTargetDate(date || new Date())} />
+                  <Calendar
+                    mode="single"
+                    selected={targetDate}
+                    onSelect={(date) => {
+                      if (date instanceof Date && !isNaN(date)) {
+                        setTargetDate(date);
+                      }
+                    }}
+                  />
                 <DialogClose asChild>
                   <Button className="w-full bg-gradient-to-r from-[#2FB98D] to-[#127C71] text-white mt-3" onClick={handleCreate}>
                     Simpan Tabungan
