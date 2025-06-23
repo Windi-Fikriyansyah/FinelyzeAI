@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { getAuth } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/clerk-sdk-node"; // ✅ ini yang kamu lupa
 import { NextResponse } from "next/server";
 import { db } from "utils/dbConfig";
 import {
@@ -8,7 +9,7 @@ import {
   Tabungan,
   RiwayatTabungan,
 } from "utils/schema";
-import { and, eq, gte, lte, inArray } from "drizzle-orm";
+import { and, eq, gte, lte } from "drizzle-orm";
 import OpenAI from "openai";
 import dayjs from "dayjs";
 
@@ -19,58 +20,63 @@ const openai = new OpenAI({
 
 export async function POST(req) {
   try {
-    const { userId } = await auth();
+    const { userId } = getAuth(req);
     if (!userId) {
-      console.log("🚫 Tidak ada userId - mungkin belum login?");
+      console.log("🚫 Tidak ada userId - belum login?");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Ambil data user lengkap untuk email
+    const user = await clerkClient.users.getUser(userId);
+    const userEmail = user?.emailAddresses?.[0]?.emailAddress;
+
+    if (!userEmail) {
+      console.log("🚫 Gagal ambil email user");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    console.log("📧 userEmail:", userEmail);
+
     const body = await req.json();
     const { messages } = body;
-console.log("🧑‍💻 userId Clerk:", userId);
 
-const now = dayjs();
-const currentMonth = now.format("YYYY-MM"); 
+    const now = dayjs();
+    const currentMonth = now.format("YYYY-MM");
 
-const danaList = await db
-  .select()
-  .from(Dana)
-  .where(and(eq(Dana.createdBy, userId), eq(Dana.bulan, currentMonth)));
+    const danaList = await db
+      .select()
+      .from(Dana)
+      .where(and(eq(Dana.createdBy, userEmail), eq(Dana.bulan, currentMonth)));
 
-console.log("🎯 CurrentMonth digunakan:", currentMonth);
-console.log("📦 DanaList:", danaList);
+    const dana = danaList[0];
 
-    const dana = danaList[0]; // Ambil satu dana utama
-    const danaIds = danaList.map((d) => d.id); // Buat list ID dana user
-
-    // Ambil pengeluaran berdasarkan dana user
-const pengeluaran = await db
-  .select({
-    id: Pengeluaran.id,
-    nama: Pengeluaran.nama,
-    jumlah: Pengeluaran.jumlah,
-    createdAt: Pengeluaran.createdAt,
-  })
-  .from(Pengeluaran)
-  .innerJoin(Dana, eq(Pengeluaran.danaId, Dana.id))
-  .where(
-    and(
-      eq(Dana.createdBy, userId),
-      eq(Dana.bulan, currentMonth),
-      gte(Pengeluaran.createdAt, now.startOf("month").toDate()),
-      lte(Pengeluaran.createdAt, now.endOf("month").toDate())
-    )
-  );
+    const pengeluaran = await db
+      .select({
+        id: Pengeluaran.id,
+        nama: Pengeluaran.nama,
+        jumlah: Pengeluaran.jumlah,
+        createdAt: Pengeluaran.createdAt,
+      })
+      .from(Pengeluaran)
+      .innerJoin(Dana, eq(Pengeluaran.danaId, Dana.id))
+      .where(
+        and(
+          eq(Dana.createdBy, userEmail),
+          eq(Dana.bulan, currentMonth),
+          gte(Pengeluaran.createdAt, now.startOf("month").toDate()),
+          lte(Pengeluaran.createdAt, now.endOf("month").toDate())
+        )
+      );
 
     const pemasukan = await db
       .select()
       .from(Pemasukan)
-      .where(eq(Pemasukan.createdBy, userId));
+      .where(eq(Pemasukan.createdBy, userEmail));
 
     const tabungan = await db
       .select()
       .from(Tabungan)
-      .where(eq(Tabungan.createdBy, userId));
+      .where(eq(Tabungan.createdBy, userEmail));
 
     const riwayatTabungan = await db
       .select({
@@ -81,57 +87,100 @@ const pengeluaran = await db
       .innerJoin(Tabungan, eq(RiwayatTabungan.tabunganId, Tabungan.id))
       .where(
         and(
-          eq(Tabungan.createdBy, userId),
+          eq(Tabungan.createdBy, userEmail),
           gte(RiwayatTabungan.tanggal, now.startOf("month").toDate()),
           lte(RiwayatTabungan.tanggal, now.endOf("month").toDate())
         )
       );
 
-    // Normalisasi data
+    // Normalisasi angka
+    const parseAmount = (val) => Number(String(val).replace(/[^0-9.]/g, ""));
+
     const pengeluaranList = pengeluaran || [];
     const pemasukanList = pemasukan || [];
     const tabunganList = tabungan || [];
     const riwayatList = riwayatTabungan || [];
 
-    console.log("🧾 PengeluaranList:", pengeluaranList);
-console.log("🧾 PemasukanList:", pemasukanList);
-console.log("🧾 Dana:", dana);
+    const totalPemasukan = pemasukanList.reduce(
+      (acc, p) => acc + parseAmount(p.jumlah),
+      0
+    );
+    const totalPengeluaran = pengeluaranList.reduce(
+      (acc, p) => acc + parseAmount(p.jumlah),
+      0
+    );
 
-    // Prompt sistem untuk Finbot
+    console.log("🎯 Bulan:", currentMonth);
+    console.log("📦 DanaList:", danaList);
+    console.log("🧾 PengeluaranList:", pengeluaranList);
+    console.log("🧾 PemasukanList:", pemasukanList);
+
     const systemPrompt = `
 Kamu adalah Finbot 🤖, asisten keuangan digital yang ceria, cerdas, dan jujur. Tugasmu adalah membantu user memahami kondisi keuangannya berdasarkan data aktual bulan ini.
 
-Data user bulan ini:
-- Dana: Rp ${Number(dana?.jumlah || 0)}
-- Total pemasukan: Rp ${pemasukanList.reduce((acc, p) => acc + Number(p.jumlah), 0)}
-- Total pengeluaran: Rp ${pengeluaranList.reduce((acc, p) => acc + Number(p.jumlah), 0)}
-- Pengeluaran per kategori:
-${pengeluaranList.length > 0
-  ? pengeluaranList.map((p) => `  - ${p.nama}: Rp ${Number(p.jumlah)}`).join("\n")
-  : "  - Tidak ada"}
-- Tabungan aktif:
-${tabunganList.length > 0
-  ? tabunganList.map((t) => `  - ${t.nama}: Terkumpul Rp ${Number(t.terkumpul)} dari Rp ${Number(t.target)}`).join("\n")
-  : "  - Tidak ada"}
-- Riwayat Nabung bulan ini:
-${riwayatList.length > 0
-  ? riwayatList.map((r) => `  - Rp ${Number(r.nominal)} pada ${dayjs(r.tanggal).format("DD MMM")}`).join("\n")
-  : "  - Tidak ada"}
+📅 Bulan: ${currentMonth}
+📥 Total pemasukan: Rp ${totalPemasukan.toLocaleString("id-ID")}
+📤 Total pengeluaran: Rp ${totalPengeluaran.toLocaleString("id-ID")}
 
-Gaya bicaramu:
-- Ramah, lucu, penuh semangat, dan memotivasi.
-- Analisa tajam tapi tetap menyenangkan.
-- Klasifikasikan topik keuangan user ke Primer, Sekunder, atau Tersier jika cocok.
-- Akhiri jawaban dengan pertanyaan relevan agar user terus ingin ngobrol.
-`.trim();
+🧾 Rincian Pengeluaran:
+${
+  pengeluaranList.length > 0
+    ? pengeluaranList
+        .map(
+          (p) =>
+            `  - ${p.nama}: Rp ${Number(p.jumlah).toLocaleString("id-ID")}`
+        )
+        .join("\n")
+    : "  - Tidak ada pengeluaran bulan ini."
+}
 
-    // Kirim ke OpenRouter
+💼 Dana yang dimiliki:
+${
+  danaList.length > 0
+    ? danaList
+        .map(
+          (d) =>
+            `  - ${d.nama}: Rp ${Number(d.jumlah).toLocaleString("id-ID")}`
+        )
+        .join("\n")
+    : "  - Tidak ada dana yang tercatat."
+}
+
+💰 Pemasukan:
+${
+  pemasukanList.length > 0
+    ? pemasukanList
+        .map(
+          (p) =>
+            `  - ${p.sumber}: Rp ${Number(p.jumlah).toLocaleString("id-ID")}`
+        )
+        .join("\n")
+    : "  - Tidak ada pemasukan."
+}
+
+📦 Tabungan aktif:
+${
+  tabunganList.length > 0
+    ? tabunganList
+        .map(
+          (t) =>
+            `  - ${t.nama}: Terkumpul Rp ${Number(t.terkumpul)} dari Rp ${Number(
+              t.target
+            )}`
+        )
+        .join("\n")
+    : "  - Tidak ada tabungan."
+}
+
+📈 Gaya bicaramu:
+- Ceria, analitis, dan membantu user refleksi keuangan bulan ini.
+- Beri insight apakah boros, hemat, atau cukup stabil.
+- Akhiri dengan pertanyaan agar percakapan berlanjut!
+    `.trim();
+
     const completion = await openai.chat.completions.create({
       model: "openai/gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...messages,
-      ],
+      messages: [{ role: "system", content: systemPrompt }, ...messages],
     });
 
     const reply = completion.choices?.[0]?.message;
