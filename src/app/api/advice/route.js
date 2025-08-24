@@ -1,5 +1,9 @@
 import OpenAI from "openai";
 
+if (!process.env.OPENROUTER_API_KEY) {
+  throw new Error("❌ OPENROUTER_API_KEY tidak ditemukan di environment variables!");
+}
+
 const openai = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
   baseURL: "https://openrouter.ai/api/v1",
@@ -8,60 +12,104 @@ const openai = new OpenAI({
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { totalDana, totalPengeluaran, totalPemasukan, kategoriList } = body;
+    const {
+      totalDana = 0,
+      totalPengeluaran = 0,
+      totalPemasukan = 0,
+      kategoriList = [],
+      month,
+      year,
+    } = body;
 
-    console.log("API Advice received:", body);
+    const validatedKategoriList = kategoriList
+      .map(item => ({
+        nama: item.nama || "Kategori",
+        dana: Number(item.dana) || 0,
+        total: Number(item.total) || 0,
+      }))
+      .filter(item => item.total > 0);
 
-    const prompt = `
-    Kamu adalah Finelyze AI, asisten keuangan digital yang ramah, pintar, dan kritis dalam menganalisis kebiasaan pengguna. Tugasmu adalah memberikan insight berdasarkan data aktual yang sudah terjadi, bukan menyuruh pengguna mengubah hal yang sudah lewat. Sistem ini bekerja berdasarkan pelacakan (tracking), jadi analisis dan saranmu harus fokus pada refleksi dan pembelajaran untuk ke depan.
+    const sisa = totalPemasukan - totalPengeluaran;
 
-    Data pengguna bulan ini:
-    - Total Dana: Rp ${totalDana}
-    - Pemasukan: Rp ${totalPemasukan}
-    - Pengeluaran: Rp ${totalPengeluaran}
-    - Rincian pengeluaran per kategori:
-    ${kategoriList.map((item) => `- ${item.nama}: Rp ${item.total}`).join("\n")}
-
-    Tugasmu:
-    Buat **1 paragraf (maksimal 4 kalimat)** yang menjelaskan:
-    1. Kondisi keuangan pengguna secara umum.
-    2. Masalah utama dan kenapa itu penting.
-    3. Analisis mendalam (contoh: terlalu sering beli kopi, make up mahal, dll).
-    4. Saran yang ringan tapi berbobot, bisa langsung dilakukan, dan membuka wawasan.
-
-    Gaya bahasa:
-    - Ramah, santai, tapi tetap cerdas dan insightful.
-    - Hindari kesan kaku dan terlalu baku.
-    - Tunjukkan insight yang membuat user paham **mengapa itu penting**.
-    - Boleh menyebut angka jika penting untuk user ketahui (misalnya: “pengeluaran Nongkrong di Cafe Rp 300.000 terlalu tinggi…”).
-    - Hindari frasa ambigu (contoh: “sepertinya”, “mungkin”, dll).
-    - Jangan gunakan bullet, angka, atau format list.
-
-    Contoh gaya bahasa:
-    "Keuanganmu bulan ini agak ketat karena pengeluaran lebih besar dari pemasukan. Pengeluaran untuk Nongkrong di Cafe mencapai Rp 300.000, yang cukup besar jika dilihat sebagai kebiasaan mingguan. Coba batasi jadi dua kali seminggu, supaya lebih banyak ruang untuk kebutuhan lain. Yuk, mulai rancang budgeting yang lebih realistis dan sesuai prioritas!"
-    atau
-    "Keuanganmu bulan ini mengalami defisit karena pengeluaran melebihi pemasukan, terutama untuk persiapan wisuda yang memang cukup besar dan bisa dimaklumi. Tapi pengeluaran lain seperti membeli make up dan nongkrong di Cafe juga cukup konsisten setiap minggu, dan itu bisa mempengaruhi fleksibilitas dana harian. Dari pola ini, kamu bisa mulai mempertimbangkan batasan rutin atau alokasi bulanan yang tetap untuk kategori non-esensial. Dengan begitu, kamu tetap bisa menikmati hal-hal kecil tanpa mengganggu stabilitas keuangan bulan depan."
-
-    Jawabanmu hanya berisi isi paragraf tersebut. Tidak perlu pengantar atau penutup.
-    `.trim();
-
-    const completion = await openai.chat.completions.create({
-      model: "openai/gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }],
-    });
-
-    return new Response(
-      JSON.stringify({ advice: completion.choices[0].message.content }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
-    } catch (error) {
-      console.error("OpenRouter API Error:", error);
+    if (
+      totalDana === 0 &&
+      totalPengeluaran === 0 &&
+      totalPemasukan === 0 &&
+      validatedKategoriList.length === 0
+    ) {
       return new Response(
         JSON.stringify({
-          advice: "Gagal mengambil saran dari AI 😓",
-          debug: error.message || error.toString()
+          advice: `Belum ada data keuangan pada ${month || "bulan ini"}/${year || ""}. Yuk mulai catat pemasukan dan pengeluaranmu!`
         }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
+
+    const prompt = `
+      Kamu adalah Finelyze AI, asisten keuangan pribadi yang ramah, kritis dan praktis.  
+      Analisis data bulan ${month || "ini"} ${year || ""}.
+
+      Data:
+      - Pemasukan: Rp ${totalPemasukan.toLocaleString("id-ID")}
+      - Total Pengeluaran: Rp ${totalPengeluaran.toLocaleString("id-ID")}
+      - Sisa Dana: Rp ${sisa.toLocaleString("id-ID")}
+      - Kategori dengan pengeluaran:
+      ${validatedKategoriList.map(item => `- ${item.nama}: Dana Rp ${item.dana.toLocaleString("id-ID")}, Pengeluaran Rp ${item.total.toLocaleString("id-ID")}`).join("\n")}
+
+      Instruksi:
+      1. Analisis kategori dengan pengeluaran terbesar.
+      2. Berikan insight realistis, misal masak sendiri, cari promo, kurangi frekuensi, batasi belanja impulsif.
+      3. Jawaban maksimal 4 kalimat, paragraf utuh, sertakan nominal.
+      4. Tidak boleh ada simbol dekoratif dan tanda kurung
+      `;
+
+    const models = [
+      "google/gemma-3-27b-it:free",
+      "moonshotai/kimi-k2:free"
+    ];
+
+    let completion = null;
+    let usedModel = null;
+
+    for (const model of models) {
+      try {
+        completion = await openai.chat.completions.create({
+          model,
+          messages: [{ role: "user", content: prompt }],
+        });
+        usedModel = model;
+        break;
+      } catch (err) {
+        if (err.status === 429) {
+          return new Response(
+            JSON.stringify({
+              advice: "⚠️ Kuota harian AI sudah habis. Silakan coba lagi besok ya 😊"
+            }),
+            { status: 429, headers: { "Content-Type": "application/json" } }
+          );
+        }
+        console.warn(`Model ${model} gagal, mencoba model berikutnya`, err.message);
+      }
+    }
+
+    if (!completion) throw new Error("Semua model gagal digunakan.");
+
+    return new Response(
+      JSON.stringify({
+        modelUsed: usedModel,
+        advice: completion.choices[0].message.content
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+
+  } catch (error) {
+    console.error("OpenRouter API Error:", error);
+    return new Response(
+      JSON.stringify({
+        advice: "Terjadi kesalahan pada server. Coba lagi nanti.",
+        debug: error.message || error.toString()
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
 }

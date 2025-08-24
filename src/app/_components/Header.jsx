@@ -12,10 +12,9 @@ function Header() {
     <header className="backdrop-blur-md bg-white/60 border-b border-teal-100 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-5 py-4 flex justify-between items-center">
         
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <Image
-            src="/logo.svg"
+            src="/logo.png"
             alt="Finelyze Logo"
             width={160}
             height={100}
@@ -23,7 +22,6 @@ function Header() {
           />
         </Link>
 
-        {/* Navigation */}
         <nav className="flex items-center gap-2 text-sm font-medium">
           <Link
             href="/"

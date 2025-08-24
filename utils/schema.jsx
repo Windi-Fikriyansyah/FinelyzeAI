@@ -32,7 +32,8 @@ export const Tabungan = pgTable("tabungan", {
   icon: varchar("icon"),
   createdBy: varchar("createdBy").notNull(),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull(),
-  targetDate: timestamp("targetDate", { mode: "date" }).notNull()
+  targetDate: timestamp("targetDate", { mode: "date" }).notNull(),
+  tanggalTercapai: timestamp("tanggalTercapai", { mode: "date" })
 })
 
 //Schema Riwayat Tabungan

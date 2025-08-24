@@ -1,25 +1,56 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
+
+import React, { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { SignedIn, SignedOut, RedirectToSignIn, useUser } from "@clerk/nextjs";
+import { CircleUserRound } from "lucide-react";
+
+const STORAGE_KEY = "finbot_chat_history";
 
 function AIChatBotContent() {
+  const { isSignedIn } = useUser();
   const [messages, setMessages] = useState(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const bottomRef = useRef(null);
+
+  const rekomendasi = [
+    "Bagaimana cara mengatur budget bulanan?",
+    "Apakah pengeluaranku bulan ini tergolong boros?",
+    "Berapa rata-rata pengeluaran harian saya bulan ini?"
+  ];
+
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
 
   useEffect(() => {
-    setMessages([
-      {
-        role: "assistant",
-        content:
-          "Hai! Aku Finelyze 🤖. Senang bisa bantu kamu hari ini. Ada yang ingin kamu bahas soal keuanganmu? 💸✨",
-      },
-    ]);
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      setMessages(JSON.parse(saved));
+    } else {
+      setMessages([
+        {
+          role: "assistant",
+          content:
+            "Hai! Aku FinBot. Siap bantu menjawab seputar keuangan!"
+        }
+      ]);
+    }
   }, []);
+
+  useEffect(() => {
+    if (messages) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
 
   const handleSend = async () => {
     if (!input.trim() || !messages) return;
-
     const newMessages = [...messages, { role: "user", content: input }];
     setMessages(newMessages);
     setInput("");
@@ -29,21 +60,15 @@ function AIChatBotContent() {
       const res = await fetch("/api/chatbot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: newMessages }),
+        body: JSON.stringify({
+          messages: newMessages,
+          month: currentMonth,
+          year: currentYear
+        }),
       });
 
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        console.error("Gagal parsing JSON:", text);
-        throw new Error("Invalid JSON from API");
-      }
-
+      const data = await res.json();
       const reply = data.reply;
-      console.log("Response dari Finbot:", reply);
-
       if (reply?.content) {
         setMessages([...newMessages, reply]);
       }
@@ -54,81 +79,126 @@ function AIChatBotContent() {
     }
   };
 
-  return (
-    <div className="w-full h-screen p-6 bg-bg-white">
-      <div className="flex flex-col h-full bg-white shadow rounded-xl">
-        <h1 className="text-2xl font-bold p-4 border-b text-emerald-600 text-center">
-          🤖 Finbot AI Chatbot
-        </h1>
+  const handleClearChat = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    setMessages([
+      {
+        role: "assistant",
+        content: "Hai! Aku FinBot. Siap bantu menjawab seputar keuangan!"
+      }
+    ]);
+  };
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-emerald-50">
-          {messages &&
-            messages
-              .filter((msg) => msg.role !== "system")
-              .map((msg, index) => (
+  const handleRekomendasiClick = (text) => {
+    setInput(text);
+  };
+
+  return (
+    <div className="w-full h-screen bg-gradient-to-br from-emerald-200 via-emerald-50 to-emerald-100 flex flex-col">
+      
+      <div className="bg-gradient-to-r from-emerald-600 to-teal-500 p-4 text-white shadow-lg flex justify-center items-center relative">
+        <h1 className="text-xl font-bold tracking-wide">FinBot</h1>
+
+        <button
+          onClick={handleClearChat}
+          className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-gradient-to-br from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white px-3 py-1.5 rounded-full text-sm shadow transition-transform hover:scale-105"
+          aria-label="Clear chat"
+          type="button"
+        >
+          Hapus
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages &&
+          messages
+            .filter((msg) => msg.role !== "system")
+            .map((msg, index) => (
+              <div
+                key={index}
+                className={`flex w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
                 <div
-                  key={index}
-                  className={`flex items-start gap-3 ${
-                    msg.role === "user"
-                      ? "justify-end flex-row-reverse"
-                      : "justify-start"
+                  className={`flex items-start gap-3 max-w-[80%] ${
+                    msg.role === "user" ? "flex-row-reverse" : "flex-row"
                   }`}
                 >
-                  <div className="w-8 h-8 rounded-full bg-emerald-400 text-white flex items-center justify-center font-bold text-sm">
-                    {msg.role === "user" ? "🧑" : "🤖"}
+                  <div className="min-w-10 min-h-10 w-10 h-10 rounded-full bg-emerald-300 flex items-center justify-center overflow-hidden shadow">
+                    {msg.role === "user" ? (
+                      <CircleUserRound className="w-6 h-6 text-emerald-800" />
+                    ) : (
+                      <Image src="/icon-chatbot.png" alt="Bot" width={30} height={30} />
+                    )}
                   </div>
+
                   <div
-                    className={`max-w-[80%] px-4 py-2 rounded-2xl shadow ${
+                    className={`px-4 py-3 rounded-2xl shadow-md text-sm leading-relaxed ${
                       msg.role === "user"
-                        ? "bg-emerald-500 text-white rounded-br-none"
+                        ? "bg-gradient-to-br from-emerald-500 to-emerald-700 text-white rounded-br-none"
                         : "bg-white text-gray-800 rounded-bl-none"
                     }`}
                   >
                     {msg.content}
                   </div>
                 </div>
-              ))}
-
-          {loading && (
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <div className="w-8 h-8 rounded-full bg-emerald-300 text-white flex items-center justify-center font-bold text-sm">
-                🤖
               </div>
-              <div className="italic animate-pulse">Finelyze sedang mengetik...</div>
-            </div>
-          )}
-        </div>
+            ))}
 
-        <div className="p-4 border-t flex gap-2 bg-white">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Tanyakan sesuatu tentang keuanganmu..."
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400"
-          />
-          <button
-            onClick={handleSend}
-            disabled={loading}
-            className="px-4 py-2 rounded-lg text-white bg-gradient-to-t from-[#2FB98D] to-[#127C71] hover:brightness-110 hover:shadow-xl transition-all duration-450 ease-in-out"
-          >
-            {loading ? "..." : "Kirim"}
-          </button>
+        {loading && (
+          <div className="flex items-center gap-3 text-sm text-gray-500 animate-pulse">
+            <div className="w-10 h-10 rounded-full bg-emerald-300 flex items-center justify-center">
+              <Image src="/icon-chatbot.png" alt="Bot" width={40} height={40} />
+            </div>
+            <div className="italic">FinBot sedang mengetik...</div>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {messages?.length <= 2 && (
+        <div className="px-4 py-2 bg-white/80 backdrop-blur-md border-t border-gray-200">
+          <div className="text-sm text-gray-700 font-medium mb-2">Coba tanya salah satu ini:</div>
+          <div className="flex flex-wrap gap-2">
+            {rekomendasi.map((text, i) => (
+              <button
+                key={i}
+                onClick={() => handleRekomendasiClick(text)}
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-3 py-1 rounded-full text-sm shadow hover:scale-105 transition-transform"
+              >
+                {text}
+              </button>
+            ))}
+          </div>
         </div>
+      )}
+
+      <div className="p-4 border-t bg-white/80 backdrop-blur-md flex items-center gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Tanyakan apa saja tentang keuanganmu..."
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          className="flex-1 p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-400 text-sm"
+        />
+        <button
+          onClick={handleSend}
+          disabled={loading}
+          className="px-5 py-2 rounded-full text-white bg-gradient-to-br from-emerald-500 to-teal-600 hover:scale-105 transition-all duration-200 text-sm shadow"
+        >
+          {loading ? "..." : "Kirim"}
+        </button>
       </div>
     </div>
   );
 }
 
-// ✅ Komponen utama: mengecek login pakai Clerk
 export default function AIChatBotPage() {
   return (
     <>
       <SignedIn>
         <AIChatBotContent />
       </SignedIn>
-
       <SignedOut>
         <RedirectToSignIn />
       </SignedOut>

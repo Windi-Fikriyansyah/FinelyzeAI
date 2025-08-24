@@ -1,147 +1,55 @@
 "use client";
-import React, { useState } from "react";
+
+import React from "react";
 import { useRouter } from "next/navigation";
-import { db } from "utils/dbConfig";
-import { Tabungan, RiwayatTabungan } from "utils/schema";
-import { eq } from "drizzle-orm";
-import { toast } from "sonner";
 import { formatRupiah } from "utils/formatter";
 import dayjs from "dayjs";
-import { Trash2, ArrowRight, Check, Fullscreen, BookOpen } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
-export default function SavingCard({ item, onRefresh }) {
+export default function SavingCard({ item }) {
   const router = useRouter();
-  const [nabungInput, setNabungInput] = useState("");
-
-  const handleDelete = async () => {
-    try {
-      await db.delete(Tabungan).where(eq(Tabungan.id, item.id));
-      toast.success("Tabungan dihapus.");
-      onRefresh();
-    } catch (error) {
-      toast.error("Gagal menghapus tabungan.");
-    }
-  };
-
-  const handleNabung = async () => {
-    const nominal = parseFloat(nabungInput);
-    if (!nominal || nominal <= 0) return toast.error("Masukkan nominal yang valid.");
-
-    try {
-      const newTotal = parseFloat(item.terkumpul) + nominal;
-
-      await db.update(Tabungan)
-        .set({ terkumpul: newTotal })
-        .where(eq(Tabungan.id, item.id));
-
-      await db.insert(RiwayatTabungan).values({
-        tabunganId: item.id,
-        nominal,
-        tanggal: new Date(),
-      });
-
-      toast.success("Berhasil menabung!");
-      setNabungInput("");
-      onRefresh();
-    } catch (error) {
-      toast.error("Gagal menabung.");
-    }
-  };
-
   const sudahTercapai = parseFloat(item.terkumpul) >= parseFloat(item.target);
   const persentase = Math.min((item.terkumpul / item.target) * 100, 100).toFixed(1);
   const target = dayjs(item.targetDate);
 
   return (
     <div
-      className={`border rounded-lg bg-gradient-to-br from-[#E6FAF3] to-white border border-teal-200 shadow-sm hover:shadow-md p-5 space-y-4 ${
-        sudahTercapai ? "border-teal-400 ring-1 ring-teal-200" : "border-slate-200"
-      }`}
+      onClick={() => router.push(`/dashboard/savings/${item.id}`)}
+      title="Klik untuk lihat detail"
+      className="w-full p-4 md:p-5 rounded-xl bg-white border border-teal-200 shadow hover:shadow-md hover:border-teal-300 cursor-pointer transition-all duration-300 flex items-center gap-4"
     >
-      {/* Header */}
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 flex items-center justify-center text-2xl bg-gradient-to-t from-[#b8fae5] via-[#6ce1cb] to-[#17b4a5] rounded-full">
-            {item.icon}
-          </div>
-          <div>
-            <h2 className="font-semibold">{item.nama}</h2>
-            {item.targetDate && (
-              <p className="text-sm text-gray-600 mt-1">🎯 {target.format("DD MMM YYYY")}</p>
-            )}
-            {sudahTercapai && (
-              <p className="text-green-600 font-semibold text-sm">✅ Target Tercapai!</p>
-            )}
-          </div>
-        </div>
-
-        {/* Icons */}
-        <div className="flex gap-2">
-          <Button
-            className="bg-white shadow-sm"
-            variant="ghost"
-            size="icon"
-            onClick={() => router.push(`/dashboard/savings/${item.id}`)}
-          >
-            <BookOpen className="w-5 h-5 text-teal-700" />
-          </Button>
-          <Button
-            className="bg-white shadow-sm"
-            variant="ghost"
-            size="icon"
-            onClick={handleDelete}
-          >
-            <Trash2 className="w-5 h-5 text-red-500" />
-          </Button>
-        </div>
+      <div className="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center text-2xl md:text-3xl rounded-full bg-gradient-to-br from-[#b8fae5] via-[#6ce1cb] to-[#17b4a5] text-white shadow">
+        {item.icon}
       </div>
 
-      {/* Progress Bar */}
-      <div className="flex items-center justify-between text-xs text-slate-600 ">
-        <span>Terkumpul Rp {formatRupiah(item.terkumpul)}</span>
-        <span>Target Rp {formatRupiah(item.target)}</span>
-      </div>
-
-      <div className="w-full h-2 bg-teal-100 rounded-full mt-1">
-        <div
-          className="h-2 bg-gradient-to-r from-[#2FB98D] to-[#127C71] rounded-full"
-          style={{ width: `${persentase}%` }}
-        />
-      </div>
-
-      {/* Form Nabung */}
-{!sudahTercapai && (
-  <div className="mt-3 space-y-2">
-    <label className="text-sm text-gray-600">Masukkan jumlah dana yang ingin ditabung</label>
-    <div className="flex gap-2 items-center">
-      <Input
-        type="number"
-        placeholder="Contoh: 500000"
-        className="flex-1 bg-white border-gray-300 focus:border-teal-500 focus:ring-teal-200"
-        value={nabungInput}
-        onChange={(e) => setNabungInput(e.target.value)}
-      />
-
-      <Button
-        size="icon"
-        onClick={(e) => {
-          e.stopPropagation();
-          handleNabung();
-        }}
-        className="bg-gradient-to-r from-[#2FB98D] to-[#127C71] text-white shadow-sm hover:shadow-md"
-      >
-        <Check className="w-5 h-5" />
-      </Button>
+      <div className="flex-1">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <h3 className="text-base md:text-lg font-semibold text-gray-800">{item.nama}</h3>
+          {item.targetDate && (
+            <p className="text-sm text-gray-800 mt-1 sm:mt-0">🎯 {target.format("DD MMM YYYY")}</p>
+          )}
         </div>
-        {nabungInput && (
-          <p className="text-xs text-gray-500">
-            Format: <span className="font-semibold text-black">Rp {formatRupiah(nabungInput)}</span>
-          </p>
+
+        {sudahTercapai && (
+          <p className="text-green-600 text-xs font-medium mt-1 animate-pulse">✅ Target Tercapai</p>
         )}
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm text-gray-600 mt-1">
+          <span>
+            <span className="font-medium text-gray-800">Rp {formatRupiah(item.terkumpul)}</span> / Rp{" "}
+            {formatRupiah(item.target)}
+          </span>
+          <span className="text-teal-700 font-medium text-xs sm:text-sm mt-1 sm:mt-0">
+            {persentase}% Tercapai
+          </span>
+        </div>
+
+        <div className="w-full h-2 relative rounded-full bg-teal-100 overflow-hidden mt-2">
+          <div
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#2FB98D] to-[#127C71] rounded-full transition-all duration-700"
+            style={{ width: `${persentase}%` }}
+          />
+        </div>
       </div>
-    )}
     </div>
   );
 }

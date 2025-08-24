@@ -1,0 +1,1 @@
+ALTER TABLE "tabungan" ADD COLUMN "tanggalTercapai" timestamp;

@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from "next/image";
 import Link from "next/link";
-import { BotMessageSquare, LayoutGrid, PiggyBank, HandCoins, Wallet } from 'lucide-react';
+import { BotMessageSquare, LayoutGrid, PiggyBank, HandCoins, ShoppingCart  } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 
@@ -11,11 +11,12 @@ const SafeUserButton = dynamic(() => import('@clerk/nextjs').then(mod => mod.Use
   ssr: false
 });
 
-function SideNav() {
+
+function SideNav({ onClose }) {
   const menuList = [
-    { id: 1, name: 'Beranda', icon: LayoutGrid, path: '/dashboard' },
+    { id: 1, name: 'Dashboard', icon: LayoutGrid, path: '/dashboard' },
     { id: 2, name: 'Pemasukan', icon: HandCoins, path: '/dashboard/income' },
-    { id: 3, name: 'Pengeluaran', icon: Wallet, path: '/dashboard/budgets' },
+    { id: 3, name: 'Pengeluaran', icon: ShoppingCart , path: '/dashboard/budgets' },
     { id: 4, name: 'Tabungan', icon: PiggyBank, path: '/dashboard/savings' },
     { id: 5, name: 'AI Chatbot', icon: BotMessageSquare, path: '/dashboard/aiChatbot' }
   ];
@@ -24,14 +25,15 @@ function SideNav() {
 
   return (
     <div className="h-screen w-[250px] border-r bg-white p-5 shadow-sm flex flex-col justify-between">
-      {/* Logo */}
       <div>
-        <Image src='/logo.svg' alt='logo' width={160} height={100} />
+        <div className="flex justify-center">
+          <Image src='/logo.png' alt='logo' width={160} height={100} />
+        </div>
         <nav className="mt-6 space-y-2">
           {menuList.map((menu) => {
             const isActive = path === menu.path;
             return (
-              <Link key={menu.id} href={menu.path}>
+              <Link key={menu.id} href={menu.path} onClick={onClose}> {/* ✅ Tambahkan onClose */}
                 <div
                   className={`mt-3 flex items-center gap-3 px-4 py-3 rounded-lg font-medium cursor-pointer transition-all
                     ${isActive

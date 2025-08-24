@@ -91,7 +91,7 @@ export default function Expenses({ params: paramsPromise }) {
 
     if (deleteExpanseResult) {
       await db.delete(Dana).where(eq(Dana.id, id)).returning();
-      toast("Dana dihapus!");
+      toast("Kategori Pengeluaran dihapus!");
       router.replace("/dashboard/budgets");
     }
   };
@@ -102,9 +102,9 @@ export default function Expenses({ params: paramsPromise }) {
         <Button
           onClick={() => {
             if (selectedMonth && selectedYear) {
-              router.push(`/dashboard?month=${selectedMonth}&year=${selectedYear}`);
+              router.push(`/dashboard/budgets?month=${selectedMonth}&year=${selectedYear}`);
             } else {
-              router.push("/dashboard");
+              router.push("/dashboard/budgets");
             }
           }}
           variant="outline"
@@ -131,12 +131,12 @@ export default function Expenses({ params: paramsPromise }) {
               <AlertDialogHeader>
                 <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Dana dan pengeluaran akan dihapus permanen. Lanjutkan?
+                  Kategori dan riwayat pengeluaran akan dihapus permanen. Lanjutkan?
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Tidak</AlertDialogCancel>
-                <AlertDialogAction onClick={() => deleteBudget()}>Ya</AlertDialogAction>
+                <AlertDialogAction onClick={() => deleteBudget()} className="bg-red-500 hover:bg-red-600">Ya</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -158,7 +158,7 @@ export default function Expenses({ params: paramsPromise }) {
       </div>
 
       <div className="mt-4">
-        <h2 className="font-bold text-lg">Pengeluaran Terbaru</h2>
+        <h2 className="font-bold text-lg">Riwayat Pengeluaran</h2>
         <ExpenseListTable expensesList={expensesList} refreshData={() => getBudgetInfo()} />
       </div>
     </div>

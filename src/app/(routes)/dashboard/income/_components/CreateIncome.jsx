@@ -2,10 +2,10 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
 import { useUser } from "@clerk/nextjs";
 import { formatRupiah } from "utils/formatter";
 import { useSearchParams } from "next/navigation";
-
 import {
   Dialog,
   DialogClose,
@@ -15,8 +15,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
-import EmojiPicker from "emoji-picker-react";
 import { db } from "utils/dbConfig";
 import { Pemasukan } from "utils/schema";
 import { toast } from "sonner";
@@ -24,6 +22,7 @@ import { toast } from "sonner";
 function CreateIncome({ refreshData }) {
   const [sumber, setSumber] = useState("");
   const [jumlah, setJumlah] = useState("");
+  const [tanggalPemasukan, setTanggalPemasukan] = useState(new Date());
 
   const searchParams = useSearchParams();
   const selectedMonth = Number(searchParams.get("month")) || new Date().getMonth() + 1;
@@ -38,12 +37,10 @@ function CreateIncome({ refreshData }) {
     }
 
     try {
-      const tanggal = new Date();
-
       const result = await db.insert(Pemasukan).values({
-        sumber: `${sumber}`,
+        sumber: sumber,
         jumlah,
-        tanggal,
+        tanggal: tanggalPemasukan,
         createdBy: user.primaryEmailAddress.emailAddress,
       });
 
@@ -60,35 +57,32 @@ function CreateIncome({ refreshData }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button
-          className="px-4 py-2 rounded text-white bg-gradient-to-t from-[#2FB98D] to-[#127C71] hover:brightness-105 hover:shadow-lg transition-all duration-300 ease-in-out"
-        >
+        <Button className="px-4 py-2 rounded text-white bg-gradient-to-t from-[#2FB98D] to-[#127C71] hover:brightness-105 hover:shadow-lg transition-all duration-300 ease-in-out">
           + Tambah Pemasukan
         </Button>
       </DialogTrigger>
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Tambah Pemasukan Baru</DialogTitle>
+          <DialogTitle className="text-center">Tambah Pemasukan Baru</DialogTitle>
           <DialogDescription />
 
-          <div className="mt-5">            
-            <div className="mt-2">
-              <h2 className="text-black font-medium mt-1">Sumber Pemasukan</h2>
+          <div className="mt-5 text-left space-y-4">
+            <div>
+              <h2 className="text-black font-medium">Sumber Pemasukan</h2>
               <Input
                 placeholder="contoh: Gaji Freelance"
                 onChange={(e) => setSumber(e.target.value)}
               />
             </div>
 
-            <div className="mt-2">
-              <h2 className="text-black font-medium my-1">Jumlah</h2>
+            <div>
+              <h2 className="text-black font-medium">Jumlah</h2>
               <Input
                 type="number"
                 placeholder="contoh: 1000000"
                 onChange={(e) => setJumlah(e.target.value)}
               />
-
               {jumlah && (
                 <p className="text-sm text-muted-foreground mt-1">
                   Format:{" "}
@@ -99,11 +93,28 @@ function CreateIncome({ refreshData }) {
               )}
             </div>
 
+            <div>
+              <label className="text-center block text-sm font-medium text-black mb-1">
+                Tanggal Pemasukan
+              </label>
+              <div className="flex justify-center">
+                <Calendar
+                  mode="single"
+                  selected={tanggalPemasukan}
+                  onSelect={(date) => {
+                    if (date instanceof Date && !isNaN(date)) {
+                      setTanggalPemasukan(date);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
             <DialogClose asChild>
               <Button
-                disabled={!(sumber && jumlah)}
+                disabled={!(sumber && jumlah && tanggalPemasukan)}
                 onClick={onCreateIncome}
-                className="mt-5 w-full px-4 py-2 rounded text-white bg-gradient-to-t from-[#2FB98D] to-[#127C71] hover:brightness-105 hover:shadow-lg transition-all duration-450 ease-in-out"
+                className="w-full px-4 py-2 rounded text-white bg-gradient-to-t from-[#2FB98D] to-[#127C71] hover:brightness-105 hover:shadow-lg transition-all duration-450 ease-in-out mt-3"
               >
                 Simpan Pemasukan
               </Button>

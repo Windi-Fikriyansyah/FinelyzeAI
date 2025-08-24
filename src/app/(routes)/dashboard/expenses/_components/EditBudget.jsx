@@ -51,7 +51,7 @@ function EditBudget({ budgetInfo, refreshData }) {
 
     if (result) {
       refreshData();
-      toast.success('Dana berhasil diupdate!');
+      toast.success('Kategori pengeluaran berhasil diupdate!');
     }
   };
 
@@ -73,35 +73,31 @@ function EditBudget({ budgetInfo, refreshData }) {
 
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Kategori Dana</DialogTitle>
+              <DialogTitle className="text-center w-full">
+                Edit Kategori Pengeluaran
+              </DialogTitle>
             <DialogDescription>
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 relative">
-            {/* Emoji Picker */}
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setOpenEmojiPicker(!openEmojiPicker)}
-              >
-                {emojiIcon}
-              </Button>
-              {openEmojiPicker && (
-                <div className="absolute z-50 top-12">
-                  <EmojiPicker
-                    height={300}
-                    width={250}
-                    onEmojiClick={(e) => {
-                      setEmojiIcon(e.emoji);
-                      setOpenEmojiPicker(false);
-                    }}
-                  />
-                </div>
-              )}
+          <div className="text-left space-y-3">
+            <Button
+              variant="outline"
+              className="text-lg"
+              onClick={() => setOpenEmojiPicker(!openEmojiPicker)}
+            >
+              {emojiIcon}
+            </Button>
+            <div className="absolute z-20">
+              <EmojiPicker
+                open={openEmojiPicker}
+                onEmojiClick={(e) => {
+                  setEmojiIcon(e.emoji);
+                  setOpenEmojiPicker(false);
+                }}
+              />
             </div>
 
-            {/* Nama */}
             <div>
               <h2 className="text-black font-medium mb-1">Nama Kategori</h2>
               <Input
@@ -111,9 +107,8 @@ function EditBudget({ budgetInfo, refreshData }) {
               />
             </div>
 
-            {/* Jumlah Dana */}
             <div>
-              <h2 className="text-black font-medium mb-1">Target Dana</h2>
+              <h2 className="text-black font-medium mb-1">Perkiraan Alokasi Dana</h2>
               <Input
                 type="number"
                 placeholder="contoh: 500000"
@@ -127,14 +122,13 @@ function EditBudget({ budgetInfo, refreshData }) {
               )}
             </div>
 
-            {/* Tombol Update */}
             <DialogClose asChild>
               <Button
                 disabled={!(name && amount)}
                 onClick={onUpdateBudget}
                 className="mt-5 w-full px-4 py-2 rounded text-white bg-gradient-to-t from-[#2FB98D] to-[#127C71] hover:brightness-105 hover:shadow-lg transition-all duration-450 ease-in-out"
               >
-              Update Kategori
+              Simpan Perubahan
               </Button>
             </DialogClose>
           </div>

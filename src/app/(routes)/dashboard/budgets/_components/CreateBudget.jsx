@@ -31,8 +31,8 @@ function CreateBudget({refreshData}) {
   const [amount,setAmount]=useState();
 
   const searchParams = useSearchParams();
-const selectedMonth = Number(searchParams.get('month')) || new Date().getMonth() + 1;
-const selectedYear = Number(searchParams.get('year')) || new Date().getFullYear();
+  const selectedMonth = Number(searchParams.get('month')) || new Date().getMonth() + 1;
+  const selectedYear = Number(searchParams.get('year')) || new Date().getFullYear();
 
   const {user}=useUser();
   const onCreateBudget = async () => {
@@ -40,50 +40,47 @@ const selectedYear = Number(searchParams.get('year')) || new Date().getFullYear(
       toast.error('User belum login atau email belum tersedia.');
       return;
     }
+      try {
+        const now = new Date();
+        const bulanFormatted = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`; // sesuai pilihan user
+
+      const result = await db.insert(Dana)
+        .values({
+          nama: name,
+          jumlah: amount,
+          icon: emojiIcon,
+          createdBy: user.primaryEmailAddress.emailAddress,
+          bulan: bulanFormatted 
+        })
+        .returning({ insertId: Dana.id });
+
+        if (result) {
+        if (refreshData) refreshData(); 
+        toast('Kategori pengeluaran berhasil dibuat!');
+      }
+
+      } catch (error) {
+        console.error(error);
+        toast.error('Gagal membuat kategori pengeluaran.');
+      }
+      };
   
-try {
-  const now = new Date();
-  const bulanFormatted = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`; // sesuai pilihan user
-
-const result = await db.insert(Dana)
-  .values({
-    nama: name,
-    jumlah: amount,
-    icon: emojiIcon,
-    createdBy: user.primaryEmailAddress.emailAddress,
-    bulan: bulanFormatted // <== sekarang mengikuti dropdown
-  })
-  .returning({ insertId: Dana.id });
-
-  if (result) {
-  if (refreshData) refreshData(); 
-  toast('Dana baru berhasil dibuat!');
-}
-
-} catch (error) {
-  console.error(error);
-  toast.error('Gagal membuat dana.');
-}
-
-  };
-  
-
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button
           className="px-4 py-2 rounded text-white bg-gradient-to-t from-[#2FB98D] to-[#127C71] hover:brightness-105 hover:shadow-lg transition-all duration-300 ease-in-out"
         >
-          + Tambah Kategori
+          + Buat Kategori Pengeluaran
         </Button>
       </DialogTrigger>
 
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Buat Kategori Pengeluaran</DialogTitle>
+        <DialogHeader >
+          <DialogTitle className="text-center">Buat Kategori Pengeluaran</DialogTitle>
           <DialogDescription />
 
-          <div className="mt-5">
+          <div className="mt-5 text-left space-y-3">
             <Button
               variant="outline"
               className="text-lg"
