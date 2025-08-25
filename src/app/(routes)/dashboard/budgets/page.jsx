@@ -1,57 +1,62 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import BudgetList from './_components/BudgetList'
-import CreateBudget from './_components/CreateBudget'
-import ExpenseHistory from './ExpenseHistory'
-import dayjs from 'dayjs'
-import { Input } from '@/components/ui/input'
-import { Search } from 'lucide-react'
+import React, { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import BudgetList from "./_components/BudgetList";
+import CreateBudget from "./_components/CreateBudget";
+import ExpenseHistory from "./ExpenseHistory";
+import dayjs from "dayjs";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import { Suspense } from "react";
 
-export default function Budget() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
+// Buat wrapper komponen untuk menangani useSearchParams
+function BudgetContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
-  const [selectedMonth, setSelectedMonth] = useState(null)
-  const [selectedYear, setSelectedYear] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [refreshKey, setRefreshKey] = useState(0)
+  const [selectedMonth, setSelectedMonth] = useState(null);
+  const [selectedYear, setSelectedYear] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    const defaultMonth = Number(searchParams.get('month')) || new Date().getMonth() + 1
-    const defaultYear = Number(searchParams.get('year')) || new Date().getFullYear()
-    setSelectedMonth(defaultMonth)
-    setSelectedYear(defaultYear)
-  }, [searchParams])
+    const defaultMonth =
+      Number(searchParams.get("month")) || new Date().getMonth() + 1;
+    const defaultYear =
+      Number(searchParams.get("year")) || new Date().getFullYear();
+    setSelectedMonth(defaultMonth);
+    setSelectedYear(defaultYear);
+  }, [searchParams]);
 
   const handleMonthChange = (e) => {
-    const newMonth = Number(e.target.value)
+    const newMonth = Number(e.target.value);
     if (selectedYear) {
-      router.push(`/dashboard/budgets?month=${newMonth}&year=${selectedYear}`)
+      router.push(`/dashboard/budgets?month=${newMonth}&year=${selectedYear}`);
     }
-  }
+  };
 
   const handleYearChange = (e) => {
-    const newYear = Number(e.target.value)
+    const newYear = Number(e.target.value);
     if (selectedMonth) {
-      router.push(`/dashboard/budgets?month=${selectedMonth}&year=${newYear}`)
+      router.push(`/dashboard/budgets?month=${selectedMonth}&year=${newYear}`);
     }
-  }
+  };
 
   const refreshData = () => {
-    setRefreshKey(prev => prev + 1)
-  }
+    setRefreshKey((prev) => prev + 1);
+  };
 
-  if (!selectedMonth || !selectedYear) return null
+  if (!selectedMonth || !selectedYear) return null;
 
   return (
-    <div className='p-10'>
+    <div className="p-10">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className='font-bold text-3xl'>Kategori Pengeluaran</h2>
+          <h2 className="font-bold text-3xl">Kategori Pengeluaran</h2>
           <p className="text-gray-600 mt-2">
-            Yuk! alokasikan dana per kategori, agar pengeluaranmu lebih terencana dan mudah dipantau.
+            Yuk! alokasikan dana per kategori, agar pengeluaranmu lebih
+            terencana dan mudah dipantau.
           </p>
         </div>
 
@@ -74,7 +79,7 @@ export default function Budget() {
           >
             {Array.from({ length: 12 }, (_, i) => (
               <option key={i + 1} value={i + 1}>
-                {dayjs().month(i).format('MMMM')}
+                {dayjs().month(i).format("MMMM")}
               </option>
             ))}
           </select>
@@ -109,5 +114,22 @@ export default function Budget() {
         refreshData={refreshData}
       />
     </div>
-  )
+  );
+}
+
+// Komponen utama dengan Suspense boundary
+export default function Budget() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-10">
+          <div className="flex justify-center items-center h-64">
+            <p>Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <BudgetContent />
+    </Suspense>
+  );
 }
