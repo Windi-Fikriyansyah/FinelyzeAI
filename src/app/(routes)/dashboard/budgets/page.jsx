@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import BudgetList from "./_components/BudgetList";
 import CreateBudget from "./_components/CreateBudget";
@@ -9,35 +9,54 @@ import dayjs from "dayjs";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 
-// Komponen terpisah untuk menangani searchParams
-function BudgetContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
-  const [selectedMonth, setSelectedMonth] = useState(null);
-  const [selectedYear, setSelectedYear] = useState(null);
+export default function Budget() {
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isClient, setIsClient] = useState(false);
+
+  // Hook untuk router dan searchParams - gunakan try-catch untuk handling error
+  let searchParams = null;
+  let router = null;
+
+  try {
+    searchParams = useSearchParams();
+    router = useRouter();
+  } catch (error) {
+    console.log("Router hooks not available during SSR");
+  }
 
   useEffect(() => {
-    const defaultMonth =
-      Number(searchParams.get("month")) || new Date().getMonth() + 1;
-    const defaultYear =
-      Number(searchParams.get("year")) || new Date().getFullYear();
-    setSelectedMonth(defaultMonth);
-    setSelectedYear(defaultYear);
+    setIsClient(true);
+
+    // Hanya jalankan jika client-side dan searchParams tersedia
+    if (searchParams) {
+      const defaultMonth =
+        Number(searchParams.get("month")) || new Date().getMonth() + 1;
+      const defaultYear =
+        Number(searchParams.get("year")) || new Date().getFullYear();
+      setSelectedMonth(defaultMonth);
+      setSelectedYear(defaultYear);
+    }
   }, [searchParams]);
 
   const handleMonthChange = (e) => {
     const newMonth = Number(e.target.value);
-    if (selectedYear) {
+    setSelectedMonth(newMonth);
+
+    // Hanya update URL jika router tersedia (client-side)
+    if (router && isClient) {
       router.push(`/dashboard/budgets?month=${newMonth}&year=${selectedYear}`);
     }
   };
 
   const handleYearChange = (e) => {
     const newYear = Number(e.target.value);
-    if (selectedMonth) {
+    setSelectedYear(newYear);
+
+    // Hanya update URL jika router tersedia (client-side)
+    if (router && isClient) {
       router.push(`/dashboard/budgets?month=${selectedMonth}&year=${newYear}`);
     }
   };
@@ -46,12 +65,28 @@ function BudgetContent() {
     setRefreshKey((prev) => prev + 1);
   };
 
-  // Loading state sementara menunggu selectedMonth dan selectedYear ter-set
-  if (!selectedMonth || !selectedYear) {
+  // Tampilkan loading hanya sebentar saat pertama kali load
+  if (!isClient) {
     return (
       <div className="p-10">
-        <div className="flex items-center justify-center min-h-[200px]">
-          <div className="text-gray-500">Loading...</div>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h2 className="font-bold text-3xl">Kategori Pengeluaran</h2>
+            <p className="text-gray-600 mt-2">
+              Yuk! alokasikan dana per kategori, agar pengeluaranmu lebih
+              terencana dan mudah dipantau.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="animate-pulse bg-gray-200 h-10 w-32 rounded-lg"></div>
+            <div className="animate-pulse bg-gray-200 h-10 w-20 rounded-lg"></div>
+            <div className="animate-pulse bg-gray-200 h-10 w-20 rounded-lg"></div>
+          </div>
+        </div>
+
+        <div className="mt-8">
+          <div className="animate-pulse bg-gray-200 h-32 w-full rounded-lg"></div>
         </div>
       </div>
     );
@@ -122,22 +157,5 @@ function BudgetContent() {
         refreshData={refreshData}
       />
     </div>
-  );
-}
-
-// Komponen utama dengan Suspense boundary
-export default function Budget() {
-  return (
-    <Suspense
-      fallback={
-        <div className="p-10">
-          <div className="flex items-center justify-center min-h-[200px]">
-            <div className="text-gray-500">Loading...</div>
-          </div>
-        </div>
-      }
-    >
-      <BudgetContent />
-    </Suspense>
   );
 }
