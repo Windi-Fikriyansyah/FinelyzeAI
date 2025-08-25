@@ -1,40 +1,49 @@
-'use client'
-import { useSearchParams, useRouter } from 'next/navigation'
-import IncomeList from './_components/IncomeList'
-import CreateIncome from './_components/CreateIncome'
-import dayjs from 'dayjs'
-import { useEffect, useState } from 'react'
-import { Input } from '@/components/ui/input'
-import { Search } from 'lucide-react'
+"use client";
+import { useSearchParams, useRouter } from "next/navigation";
+import IncomeList from "./_components/IncomeList";
+import CreateIncome from "./_components/CreateIncome";
+import dayjs from "dayjs";
+import { useEffect, useState, Suspense } from "react";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
-export default function IncomePage() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
+// Komponen konten yang menggunakan useSearchParams
+function IncomeContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
-  const selectedMonth = Number(searchParams.get('month')) || new Date().getMonth() + 1
-  const selectedYear = Number(searchParams.get('year')) || new Date().getFullYear()
+  const selectedMonth =
+    Number(searchParams.get("month")) || new Date().getMonth() + 1;
+  const selectedYear =
+    Number(searchParams.get("year")) || new Date().getFullYear();
 
-  const [refreshKey, setRefreshKey] = useState(0)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleMonthChange = (e) => {
-    router.push(`/dashboard/income?month=${e.target.value}&year=${selectedYear}`)
-  }
+    router.push(
+      `/dashboard/income?month=${e.target.value}&year=${selectedYear}`
+    );
+  };
 
   const handleYearChange = (e) => {
-    router.push(`/dashboard/income?month=${selectedMonth}&year=${e.target.value}`)
-  }
+    router.push(
+      `/dashboard/income?month=${selectedMonth}&year=${e.target.value}`
+    );
+  };
 
   const refreshData = () => {
-    setRefreshKey(prev => prev + 1)
-  }
+    setRefreshKey((prev) => prev + 1);
+  };
 
   return (
     <div className="px-4 md:px-10 py-10 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="font-bold text-3xl">Daftar Pemasukan</h1>
-          <p className="text-gray-600 mt-2">Yuk, catat dan lihat pemasukanmu bulan ini!</p>
+          <p className="text-gray-600 mt-2">
+            Yuk, catat dan lihat pemasukanmu bulan ini!
+          </p>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -86,5 +95,36 @@ export default function IncomePage() {
         />
       </div>
     </div>
-  )
+  );
+}
+
+// Komponen utama dengan Suspense boundary
+export default function IncomePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="px-4 md:px-10 py-10 space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <div className="h-8 bg-gray-200 rounded w-48 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-64"></div>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="relative w-full sm:w-[200px]">
+                <div className="h-10 bg-gray-200 rounded"></div>
+              </div>
+              <div className="h-10 bg-gray-200 rounded w-32"></div>
+              <div className="h-10 bg-gray-200 rounded w-24"></div>
+              <div className="h-10 bg-gray-200 rounded w-40"></div>
+            </div>
+          </div>
+          <div className="mt-6">
+            <div className="h-64 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      }
+    >
+      <IncomeContent />
+    </Suspense>
+  );
 }

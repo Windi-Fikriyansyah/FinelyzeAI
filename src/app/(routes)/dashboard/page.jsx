@@ -1,18 +1,25 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { db } from "utils/dbConfig";
 import { desc, eq, and, sql } from "drizzle-orm";
 import CardInfo from "./_components/CardInfo";
 import BarChartDashboard from "./_components/BarChartDashboard";
 import TransactionListTable from "./_components/TransactionListTable";
-import { Dana, Pengeluaran, Pemasukan, Tabungan, RiwayatTabungan } from "utils/schema";
+import {
+  Dana,
+  Pengeluaran,
+  Pemasukan,
+  Tabungan,
+  RiwayatTabungan,
+} from "utils/schema";
 import BudgetItem from "./budgets/_components/BudgetItem";
 import dayjs from "dayjs";
 import { useRouter, useSearchParams } from "next/navigation";
 
-function Dashboard() {
+// Membuat komponen utama yang dibungkus Suspense
+function DashboardContent() {
   const { user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -21,7 +28,10 @@ function Dashboard() {
   const yearParam = Number(searchParams.get("year"));
   const selectedMonth = !isNaN(monthParam) ? monthParam : "";
   const selectedYear = !isNaN(yearParam) ? yearParam : "";
-  const bulanFormatted = selectedYear && selectedMonth ? `${selectedYear}-${String(selectedMonth).padStart(2, "0")}` : null;
+  const bulanFormatted =
+    selectedYear && selectedMonth
+      ? `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`
+      : null;
 
   const [budgetList, setBudgetList] = useState([]);
   const [totalPemasukan, setTotalPemasukan] = useState(0);
@@ -91,7 +101,10 @@ function Dashboard() {
             sql`EXTRACT(MONTH FROM ${Pemasukan.tanggal}) = ${selectedMonth}`
           )
         );
-      const total = pemasukan.reduce((acc, item) => acc + Number(item.jumlah), 0);
+      const total = pemasukan.reduce(
+        (acc, item) => acc + Number(item.jumlah),
+        0
+      );
       setTotalPemasukan(total);
     } catch (error) {
       console.error("Gagal ambil pemasukan:", error);
@@ -139,7 +152,10 @@ function Dashboard() {
           .where(
             and(
               eq(Dana.createdBy, user.primaryEmailAddress.emailAddress),
-              eq(Dana.bulan, `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`)
+              eq(
+                Dana.bulan,
+                `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`
+              )
             )
           ),
 
@@ -180,7 +196,9 @@ function Dashboard() {
       const combined = [...pengeluaran, ...pemasukan, ...nabung].filter(
         (item) => item && item.tanggal && item.jumlah
       );
-      const sorted = combined.sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
+      const sorted = combined.sort(
+        (a, b) => new Date(a.tanggal) - new Date(b.tanggal)
+      );
       setTransaksiList(sorted);
     } catch (error) {
       console.error("Gagal ambil transaksi:", error);
@@ -237,7 +255,9 @@ function Dashboard() {
 
           <button
             onClick={() =>
-              router.push(`/dashboard/budgets?month=${selectedMonth}&year=${selectedYear}`)
+              router.push(
+                `/dashboard/budgets?month=${selectedMonth}&year=${selectedYear}`
+              )
             }
             className="bg-gradient-to-br from-[#2FB98D] to-[#127C71] text-white px-4 py-2 rounded-md shadow hover:scale-105 transition"
           >
@@ -249,14 +269,17 @@ function Dashboard() {
       <CardInfo
         budgetList={budgetList}
         totalPemasukan={totalPemasukan}
-        totalMenabung={totalMenabung} 
+        totalMenabung={totalMenabung}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 mt-6 gap-5">
         <div className="md:col-span-2">
           <BarChartDashboard budgetList={budgetList} />
           <div className="overflow-y-auto max-h-[500px] pr-2">
-            <TransactionListTable transaksiList={transaksiList} refreshData={getDashboardData} />
+            <TransactionListTable
+              transaksiList={transaksiList}
+              refreshData={getDashboardData}
+            />
           </div>
         </div>
 
@@ -265,12 +288,17 @@ function Dashboard() {
           <div className="flex flex-col gap-4 max-h-[800px] overflow-y-auto pr-1">
             {budgetList.length === 0
               ? [1, 2, 3, 4].map((_, i) => (
-                  <div key={i} className="border rounded-xl p-4 bg-white shadow-sm">
+                  <div
+                    key={i}
+                    className="border rounded-xl p-4 bg-white shadow-sm"
+                  >
                     <div className="flex justify-between items-center mb-3">
                       <div className="flex items-center space-x-3">
                         <div className="bg-gray-200 rounded-full w-10 h-10" />
                         <div>
-                          <h4 className="font-semibold text-gray-700">Kategori</h4>
+                          <h4 className="font-semibold text-gray-700">
+                            Kategori
+                          </h4>
                           <p className="text-sm text-gray-500">0 Item</p>
                         </div>
                       </div>
@@ -297,6 +325,31 @@ function Dashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Komponen utama dengan Suspense boundary
+function Dashboard() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <div className="h-8 bg-gray-200 rounded w-48 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-64"></div>
+            </div>
+            <div className="flex gap-3">
+              <div className="h-10 bg-gray-200 rounded w-24"></div>
+              <div className="h-10 bg-gray-200 rounded w-24"></div>
+              <div className="h-10 bg-gray-200 rounded w-40"></div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <DashboardContent />
+    </Suspense>
   );
 }
 
