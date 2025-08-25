@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import BudgetList from "./_components/BudgetList";
 import CreateBudget from "./_components/CreateBudget";
@@ -8,9 +8,8 @@ import ExpenseHistory from "./ExpenseHistory";
 import dayjs from "dayjs";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { Suspense } from "react";
 
-// Buat wrapper komponen untuk menangani useSearchParams
+// Komponen terpisah untuk menangani searchParams
 function BudgetContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -47,7 +46,16 @@ function BudgetContent() {
     setRefreshKey((prev) => prev + 1);
   };
 
-  if (!selectedMonth || !selectedYear) return null;
+  // Loading state sementara menunggu selectedMonth dan selectedYear ter-set
+  if (!selectedMonth || !selectedYear) {
+    return (
+      <div className="p-10">
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="text-gray-500">Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-10">
@@ -123,8 +131,8 @@ export default function Budget() {
     <Suspense
       fallback={
         <div className="p-10">
-          <div className="flex justify-center items-center h-64">
-            <p>Loading...</p>
+          <div className="flex items-center justify-center min-h-[200px]">
+            <div className="text-gray-500">Loading...</div>
           </div>
         </div>
       }
