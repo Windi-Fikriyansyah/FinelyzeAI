@@ -1,5 +1,6 @@
-"use client";
+("use client");
 
+export const dynamic = "force-dynamic";
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import BudgetList from "./_components/BudgetList";
